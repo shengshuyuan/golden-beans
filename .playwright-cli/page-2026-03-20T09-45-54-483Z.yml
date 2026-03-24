@@ -1,0 +1,25 @@
+- generic [ref=e3]:
+  - main [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - heading "我的习惯" [level=1] [ref=e7]
+        - button [ref=e8] [cursor=pointer]:
+          - img [ref=e9]
+      - generic [ref=e12]:
+        - generic [ref=e13]: 🌱
+        - paragraph [ref=e14]: 还没有添加习惯
+        - button "添加第一个习惯" [ref=e15] [cursor=pointer]
+      - generic [ref=e16]: 长按习惯卡片可快速操作
+  - navigation [ref=e17]:
+    - generic [ref=e18] [cursor=pointer]:
+      - img [ref=e20]
+      - generic [ref=e22]: 首页
+    - generic [ref=e23] [cursor=pointer]:
+      - img [ref=e25]
+      - generic [ref=e27]: 习惯
+    - generic [ref=e28] [cursor=pointer]:
+      - img [ref=e30]
+      - generic [ref=e34]: 奖励
+    - generic [ref=e35] [cursor=pointer]:
+      - img [ref=e37]
+      - generic [ref=e39]: 统计

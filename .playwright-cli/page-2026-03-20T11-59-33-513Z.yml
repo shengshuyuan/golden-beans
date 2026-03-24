@@ -1,0 +1,41 @@
+- generic [ref=e4]:
+  - main [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - button "📄 金豆明细" [ref=e8] [cursor=pointer]:
+          - generic [ref=e9]: 📄
+          - text: 金豆明细
+        - generic [ref=e12]: ✦
+        - generic [ref=e16]: "0"
+        - generic [ref=e17]: 当前可用金豆
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e20]:
+            - paragraph [ref=e21]: 今日习惯
+            - heading "一步一步，今天也有进展" [level=1] [ref=e22]
+          - button "查看全部" [ref=e23] [cursor=pointer]
+        - generic [ref=e24]:
+          - button "待完成 0" [ref=e25] [cursor=pointer]:
+            - text: 待完成
+            - generic [ref=e26]: "0"
+          - button "已完成 0" [ref=e27] [cursor=pointer]:
+            - text: 已完成
+            - generic [ref=e28]: "0"
+        - generic [ref=e29]:
+          - generic [ref=e30]: 🌤️
+          - heading "今天的计划已经清空啦" [level=2] [ref=e31]
+          - paragraph [ref=e32]: 先创建一个习惯，开始积累你的第一颗金豆。
+          - button "创建第一个习惯" [ref=e33] [cursor=pointer]
+  - navigation [ref=e34]:
+    - button "首页" [ref=e35] [cursor=pointer]:
+      - img [ref=e37]
+      - generic [ref=e40]: 首页
+    - button "习惯" [ref=e41] [cursor=pointer]:
+      - img [ref=e43]
+      - generic [ref=e45]: 习惯
+    - button "奖励" [ref=e46] [cursor=pointer]:
+      - img [ref=e48]
+      - generic [ref=e51]: 奖励
+    - button "统计" [ref=e52] [cursor=pointer]:
+      - img [ref=e54]
+      - generic [ref=e55]: 统计

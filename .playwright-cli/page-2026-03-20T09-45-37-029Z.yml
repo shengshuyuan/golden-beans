@@ -1,0 +1,40 @@
+- generic [ref=e3]:
+  - main [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6] [cursor=pointer]:
+        - img [ref=e9]:
+          - generic [ref=e12]: 豆
+        - generic [ref=e14]:
+          - generic [ref=e15]: 我的金豆
+          - generic [ref=e16]:
+            - generic [ref=e17]: "0"
+            - generic [ref=e18]: 颗
+        - img [ref=e20]
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - button "待完成 0" [ref=e24] [cursor=pointer]:
+            - text: 待完成
+            - generic [ref=e25]: "0"
+          - button "已完成 0" [ref=e26] [cursor=pointer]:
+            - text: 已完成
+            - generic [ref=e27]: "0"
+        - generic [ref=e29]:
+          - generic [ref=e30]: 🎉
+          - paragraph [ref=e31]: 太棒了！今日习惯全部完成
+          - paragraph [ref=e32]:
+            - text: 还没有添加习惯，
+            - link "去添加" [ref=e33] [cursor=pointer]:
+              - /url: /habits/new
+  - navigation [ref=e34]:
+    - generic [ref=e35] [cursor=pointer]:
+      - img [ref=e37]
+      - generic [ref=e39]: 首页
+    - generic [ref=e40] [cursor=pointer]:
+      - img [ref=e42]
+      - generic [ref=e44]: 习惯
+    - generic [ref=e45] [cursor=pointer]:
+      - img [ref=e47]
+      - generic [ref=e51]: 奖励
+    - generic [ref=e52] [cursor=pointer]:
+      - img [ref=e54]
+      - generic [ref=e56]: 统计

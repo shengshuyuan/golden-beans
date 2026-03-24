@@ -1,0 +1,68 @@
+$primary-color: #ff9f43;
+$primary-strong: #ff8a24;
+$primary-soft: #ffe6bf;
+$primary-light: #fff3dc;
+$primary-dark: #c86b1f;
+$primary-brown: #5e3415;
+
+$secondary-color: #a195c8;
+$success-color: #20c7a3;
+$success-soft: #dff8f1;
+$warning-color: #ffb347;
+$warning-soft: #fff0d7;
+$danger-color: #f24d3d;
+$danger-soft: #ffe1db;
+
+$habit-simple: #7ecf6d;
+$habit-effort: #56c1c9;
+$habit-challenge: #e0aa35;
+
+$bg-color: #fff7e8;
+$bg-cream: #fff9f0;
+$bg-card: rgba(255, 255, 255, 0.9);
+$bg-card-strong: #ffffff;
+$bg-glass: rgba(255, 255, 255, 0.72);
+$bg-muted: #f6efe0;
+$bg-gray: #ede6d8;
+
+$text-primary: #22150d;
+$text-secondary: #7f6857;
+$text-light: #bea996;
+$text-white: #ffffff;
+
+$radius-sm: 12px;
+$radius-md: 18px;
+$radius-lg: 24px;
+$radius-xl: 32px;
+$radius-2xl: 40px;
+$radius-full: 9999px;
+
+$shadow-sm: 0 12px 30px rgba(166, 106, 26, 0.08);
+$shadow-md: 0 20px 50px rgba(166, 106, 26, 0.14);
+$shadow-lg: 0 28px 80px rgba(166, 106, 26, 0.18);
+$shadow-glow: 0 0 0 1px rgba(255, 255, 255, 0.55), 0 24px 70px rgba(255, 174, 71, 0.18);
+
+$font-xs: 12px;
+$font-sm: 14px;
+$font-md: 16px;
+$font-lg: 18px;
+$font-xl: 22px;
+$font-2xl: 28px;
+$font-3xl: 40px;
+$font-4xl: 52px;
+
+$spacing-2xs: 4px;
+$spacing-xs: 8px;
+$spacing-sm: 12px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-2xl: 40px;
+
+$breakpoint-mobile: 480px;
+$breakpoint-tablet: 768px;
+$breakpoint-desktop: 1024px;
+
+$transition-fast: 0.18s ease;
+$transition-normal: 0.28s ease;
+$transition-slow: 0.45s ease;

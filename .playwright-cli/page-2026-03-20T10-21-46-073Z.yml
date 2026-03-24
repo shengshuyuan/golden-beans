@@ -1,0 +1,55 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - main [ref=e5]:
+      - generic [ref=e104]:
+        - generic [ref=e105]:
+          - button "📄 金豆明细" [ref=e106] [cursor=pointer]:
+            - generic [ref=e107]: 📄
+            - text: 金豆明细
+          - generic [ref=e110]: ✦
+          - generic [ref=e114]: "3"
+          - generic [ref=e115]: 当前可用金豆
+        - generic [ref=e116]:
+          - generic [ref=e117]:
+            - generic [ref=e118]:
+              - paragraph [ref=e119]: 今日习惯
+              - heading "一步一步，今天也有进展" [level=1] [ref=e120]
+            - button "查看全部" [ref=e121] [cursor=pointer]
+          - generic [ref=e122]:
+            - button "待完成 0" [ref=e137] [cursor=pointer]:
+              - text: 待完成
+              - generic [ref=e124]: "0"
+            - button "已完成 1" [ref=e138] [cursor=pointer]:
+              - text: 已完成
+              - generic [ref=e126]: "1"
+          - generic [ref=e139]:
+            - generic [ref=e140]: 🌤️
+            - heading "今天的计划已经清空啦" [level=2] [ref=e141]
+            - paragraph [ref=e142]: 继续保持，去奖励页看看想兑换什么吧。
+            - button "去习惯页看看" [ref=e143] [cursor=pointer]
+    - navigation [ref=e18]:
+      - button "首页" [ref=e19] [cursor=pointer]:
+        - img [ref=e21]
+        - generic [ref=e24]: 首页
+      - button "习惯" [ref=e25] [cursor=pointer]:
+        - img [ref=e27]
+        - generic [ref=e29]: 习惯
+      - button "奖励" [ref=e30] [cursor=pointer]:
+        - img [ref=e32]
+        - generic [ref=e35]: 奖励
+      - button "统计" [ref=e36] [cursor=pointer]:
+        - img [ref=e38]
+        - generic [ref=e39]: 统计
+  - generic [ref=e145]:
+    - generic [ref=e160]: 🎉
+    - heading "打卡成功！" [level=2] [ref=e161]
+    - generic [ref=e162]:
+      - generic [ref=e163]: 🪙
+      - generic [ref=e164]: 🪙
+      - generic [ref=e165]: 🪙
+      - generic [ref=e166]: 🪙
+      - generic [ref=e167]: 🪙
+      - generic [ref=e168]: 🪙
+      - generic [ref=e169]: +3 金豆
+    - paragraph [ref=e170]: 完成一次，就离理想的自己更近一点。
+    - button "太棒了" [ref=e171] [cursor=pointer]

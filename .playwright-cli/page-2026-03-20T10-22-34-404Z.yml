@@ -1,0 +1,30 @@
+- generic [ref=e4]:
+  - main [ref=e5]:
+    - generic [ref=e172]:
+      - generic [ref=e173]:
+        - generic [ref=e174]:
+          - generic [ref=e175]: 🪙
+          - generic [ref=e176]: 3 金豆
+        - button "↗" [ref=e177] [cursor=pointer]
+      - generic [ref=e178]:
+        - generic [ref=e179]:
+          - heading "我的奖励" [level=1] [ref=e180]
+          - button "+" [ref=e181] [cursor=pointer]
+        - generic [ref=e182]:
+          - generic [ref=e183]: 🎁
+          - heading "还没有奖励清单" [level=2] [ref=e184]
+          - paragraph [ref=e185]: 把想要的小确幸放进这里，用积累的金豆换一份满足感。
+          - button "添加第一个奖励" [ref=e186] [cursor=pointer]
+  - navigation [ref=e18]:
+    - button "首页" [ref=e19] [cursor=pointer]:
+      - img [ref=e21]
+      - generic [ref=e24]: 首页
+    - button "习惯" [ref=e25] [cursor=pointer]:
+      - img [ref=e27]
+      - generic [ref=e29]: 习惯
+    - button "奖励" [active] [ref=e30] [cursor=pointer]:
+      - img [ref=e32]
+      - generic [ref=e35]: 奖励
+    - button "统计" [ref=e36] [cursor=pointer]:
+      - img [ref=e38]
+      - generic [ref=e39]: 统计

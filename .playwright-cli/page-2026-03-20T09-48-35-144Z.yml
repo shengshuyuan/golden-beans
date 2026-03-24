@@ -1,0 +1,95 @@
+- generic [ref=e3]:
+  - main [ref=e4]:
+    - generic [ref=e5]:
+      - heading "我的数据" [level=1] [ref=e7]
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - button [ref=e10] [cursor=pointer]:
+            - img [ref=e11]
+          - generic [ref=e13]: 2026年三月
+          - button [ref=e14] [cursor=pointer]:
+            - img [ref=e15]
+        - generic [ref=e17]:
+          - generic [ref=e18]: 日
+          - generic [ref=e19]: 一
+          - generic [ref=e20]: 二
+          - generic [ref=e21]: 三
+          - generic [ref=e22]: 四
+          - generic [ref=e23]: 五
+          - generic [ref=e24]: 六
+        - generic [ref=e25]:
+          - generic [ref=e27]: "1"
+          - generic [ref=e29]: "2"
+          - generic [ref=e31]: "3"
+          - generic [ref=e33]: "4"
+          - generic [ref=e35]: "5"
+          - generic [ref=e37]: "6"
+          - generic [ref=e39]: "7"
+          - generic [ref=e41]: "8"
+          - generic [ref=e43]: "9"
+          - generic [ref=e45]: "10"
+          - generic [ref=e47]: "11"
+          - generic [ref=e49]: "12"
+          - generic [ref=e51]: "13"
+          - generic [ref=e53]: "14"
+          - generic [ref=e55]: "15"
+          - generic [ref=e57]: "16"
+          - generic [ref=e59]: "17"
+          - generic [ref=e61]: "18"
+          - generic [ref=e63]: "19"
+          - generic [ref=e65]: "20"
+          - generic [ref=e67]: "21"
+          - generic [ref=e69]: "22"
+          - generic [ref=e71]: "23"
+          - generic [ref=e73]: "24"
+          - generic [ref=e75]: "25"
+          - generic [ref=e77]: "26"
+          - generic [ref=e79]: "27"
+          - generic [ref=e81]: "28"
+          - generic [ref=e83]: "29"
+          - generic [ref=e85]: "30"
+          - generic [ref=e87]: "31"
+          - generic [ref=e89]: "1"
+          - generic [ref=e91]: "2"
+          - generic [ref=e93]: "3"
+          - generic [ref=e95]: "4"
+          - generic [ref=e97]: "5"
+          - generic [ref=e99]: "6"
+          - generic [ref=e101]: "7"
+          - generic [ref=e103]: "8"
+          - generic [ref=e105]: "9"
+          - generic [ref=e107]: "10"
+          - generic [ref=e109]: "11"
+        - generic [ref=e110]:
+          - generic [ref=e113]: 全部完成
+          - generic [ref=e116]: 部分完成
+          - generic [ref=e119]: 含补卡
+      - generic [ref=e121]:
+        - generic [ref=e122]:
+          - generic [ref=e123]: "0"
+          - generic [ref=e124]: 总打卡次数
+        - generic [ref=e125]:
+          - generic [ref=e126]: "0"
+          - generic [ref=e127]: 最长连续
+        - generic [ref=e128]:
+          - generic [ref=e129]: 0🔥
+          - generic [ref=e130]: 当前连续
+        - generic [ref=e131]:
+          - generic [ref=e132]: "0"
+          - generic [ref=e133]: 累计金豆
+      - generic [ref=e134]:
+        - heading "习惯完成率" [level=2] [ref=e135]
+        - generic [ref=e137]: 还没有习惯数据
+  - navigation [ref=e138]:
+    - generic [ref=e139] [cursor=pointer]:
+      - img [ref=e141]
+      - generic [ref=e143]: 首页
+    - generic [ref=e144] [cursor=pointer]:
+      - img [ref=e146]
+      - generic [ref=e148]: 习惯
+    - generic [ref=e149] [cursor=pointer]:
+      - img [ref=e151]
+      - generic [ref=e155]: 奖励
+    - generic [ref=e156] [cursor=pointer]:
+      - img [ref=e158]
+      - generic [ref=e160]: 统计
