@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
-import { storage } from '../utils/storage'
 import { useUserStore } from './user'
 import { useAnalyticsStore } from './analytics'
 import { LEDGER_ENTRY_TYPES } from '../domain/goldRules'
+import { appStorage } from '../repositories/appStorage'
 
 function sanitizeReward(reward) {
   return {
@@ -17,10 +17,13 @@ function sanitizeReward(reward) {
 }
 
 export const useRewardStore = defineStore('reward', {
-  state: () => ({
-    rewards: storage.get('rewards', []).map(sanitizeReward),
-    redeemRecords: storage.get('reward_records', [])
-  }),
+  state: () => {
+    const s = appStorage.load()
+    return {
+      rewards: (s.rewards || []).map(sanitizeReward),
+      redeemRecords: s.rewardRecords || []
+    }
+  },
 
   getters: {
     availableRewards: state => state.rewards
@@ -28,13 +31,17 @@ export const useRewardStore = defineStore('reward', {
 
   actions: {
     hydrate() {
-      this.rewards = storage.get('rewards', []).map(sanitizeReward)
-      this.redeemRecords = storage.get('reward_records', [])
+      const state = appStorage.load()
+      this.rewards = (state.rewards || []).map(sanitizeReward)
+      this.redeemRecords = state.rewardRecords || []
     },
 
     persist() {
-      storage.set('rewards', this.rewards)
-      storage.set('reward_records', this.redeemRecords)
+      appStorage.patch(s => ({
+        ...s,
+        rewards: this.rewards,
+        rewardRecords: this.redeemRecords
+      }))
     },
 
     getRewardById(id) {

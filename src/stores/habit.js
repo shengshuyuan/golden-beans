@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { storage } from '../utils/storage'
+import { appStorage } from '../repositories/appStorage'
 import { getTodayString, shiftDate } from '../utils/date'
 import { useUserStore } from './user'
 import { useAnalyticsStore } from './analytics'
@@ -30,10 +30,13 @@ function sanitizeHabit(habit) {
 }
 
 export const useHabitStore = defineStore('habit', {
-  state: () => ({
-    habits: storage.get('habits', []).map(sanitizeHabit),
-    checkRecords: storage.get('check_records', {})
-  }),
+  state: () => {
+    const s = appStorage.load()
+    return {
+      habits: (s.habits || []).map(sanitizeHabit),
+      checkRecords: s.checkRecords || {}
+    }
+  },
 
   getters: {
     activeHabits: state => state.habits.filter(h => !h.archived),
@@ -43,13 +46,17 @@ export const useHabitStore = defineStore('habit', {
 
   actions: {
     hydrate() {
-      this.habits = storage.get('habits', []).map(sanitizeHabit)
-      this.checkRecords = storage.get('check_records', {})
+      const state = appStorage.load()
+      this.habits = (state.habits || []).map(sanitizeHabit)
+      this.checkRecords = state.checkRecords || {}
     },
 
     persist() {
-      storage.set('habits', this.habits)
-      storage.set('check_records', this.checkRecords)
+      appStorage.patch(s => ({
+        ...s,
+        habits: this.habits,
+        checkRecords: this.checkRecords
+      }))
     },
 
     getHabitById(id) {

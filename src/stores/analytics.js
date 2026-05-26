@@ -1,14 +1,16 @@
 import { defineStore } from 'pinia'
-import { storage } from '../utils/storage'
+import { appStorage } from '../repositories/appStorage'
 
 export const useAnalyticsStore = defineStore('analytics', {
-  state: () => ({
-    events: storage.get('analytics_events', [])
-  }),
+  state: () => {
+    const s = appStorage.load()
+    return { events: s.analyticsEvents || [] }
+  },
 
   actions: {
     hydrate() {
-      this.events = storage.get('analytics_events', [])
+      const state = appStorage.load()
+      this.events = state.analyticsEvents || []
     },
 
     track(eventType, data = {}) {
@@ -17,7 +19,10 @@ export const useAnalyticsStore = defineStore('analytics', {
         data,
         ts: new Date().toISOString()
       })
-      storage.set('analytics_events', this.events)
+      appStorage.patch(s => ({
+        ...s,
+        analyticsEvents: this.events
+      }))
     },
 
     getInsights() {

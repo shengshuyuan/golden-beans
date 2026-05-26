@@ -1,22 +1,29 @@
 import { defineStore } from 'pinia'
-import { storage } from '../utils/storage'
 import { LEDGER_ENTRY_TYPES, createLedgerEntry } from '../domain/goldRules'
+import { appStorage } from '../repositories/appStorage'
 
 export const useUserStore = defineStore('user', {
-  state: () => ({
-    gold: storage.get('user_gold', 0),
-    ledger: storage.get('gold_ledger', [])
-  }),
+  state: () => {
+    const s = appStorage.load()
+    return {
+      gold: s.user?.gold ?? 0,
+      ledger: s.goldLedger || []
+    }
+  },
 
   actions: {
     hydrate() {
-      this.gold = storage.get('user_gold', 0)
-      this.ledger = storage.get('gold_ledger', [])
+      const state = appStorage.load()
+      this.gold = state.user?.gold ?? 0
+      this.ledger = state.goldLedger || []
     },
 
     persist() {
-      storage.set('user_gold', this.gold)
-      storage.set('gold_ledger', this.ledger)
+      appStorage.patch(s => ({
+        ...s,
+        user: { ...s.user, gold: this.gold },
+        goldLedger: this.ledger
+      }))
     },
 
     addGold(amount, reason = '获得金豆', meta = {}, type = LEDGER_ENTRY_TYPES.CHECK_IN) {
