@@ -106,7 +106,7 @@ function confirmAction() {
         <p class="eyebrow">我的习惯</p>
         <h1 class="page-title">保持一点点持续，结果会很大</h1>
       </div>
-      <button class="add-btn" @click="router.push('/habits/new')">+</button>
+      <button class="add-btn" aria-label="新建习惯" @click="router.push('/habits/new')">+</button>
     </header>
 
     <section v-if="activeHabits.length > 0" class="summary-strip">

@@ -10,6 +10,8 @@ import {
   getStreakTierName,
   getStreakBreakPenalty
 } from '../config/habitConstants'
+import { calculateCheckInReward, calculateMakeupCost, findStreakBeforeBreak } from '../domain/habitRules'
+import { LEDGER_ENTRY_TYPES } from '../domain/goldRules'
 
 // Re-export for backward compatibility
 export { HABIT_TYPE_CONFIG, STREAK_REWARD_TIERS, HABIT_ICON_OPTIONS, getMilestoneBonus, getStreakTierName } from '../config/habitConstants'
@@ -190,33 +192,37 @@ export const useHabitStore = defineStore('habit', {
         checkedAt: new Date().toISOString()
       })
 
-      const typeConfig = HABIT_TYPE_CONFIG[habit.type] || HABIT_TYPE_CONFIG.easy
       const newStreak = this.getStreakDays(habitId, date)
       const prevStreak = newStreak - 1
-      const streakBonus = getMilestoneBonus(newStreak, prevStreak)
-      const allClearBonus = this.getPendingHabitsByDate(date).length === 0 ? 3 : 0
-      const totalGold = typeConfig.gold + streakBonus + allClearBonus
+      const pendingCount = this.getPendingHabitsByDate(date).length
+      const reward = calculateCheckInReward({
+        habitType: habit.type,
+        newStreak,
+        prevStreak,
+        pendingCount,
+        getMilestoneBonus
+      })
 
       const userStore = useUserStore()
-      userStore.addGold(totalGold, '完成习惯', {
+      userStore.addGold(reward.totalGold, '完成习惯', {
         habitId,
         date,
-        streakBonus,
-        allClearBonus
-      })
+        streakBonus: reward.streakBonus,
+        allClearBonus: reward.allClearBonus
+      }, LEDGER_ENTRY_TYPES.CHECK_IN)
 
       this.persist()
 
       const analytics = useAnalyticsStore()
-      analytics.track('check_in', { habitId, habitType: habit.type, date, totalGold })
+      analytics.track('check_in', { habitId, habitType: habit.type, date, totalGold: reward.totalGold })
 
       return {
         success: true,
         habit,
-        totalGold,
-        baseGold: typeConfig.gold,
-        streakBonus,
-        allClearBonus,
+        totalGold: reward.totalGold,
+        baseGold: reward.baseGold,
+        streakBonus: reward.streakBonus,
+        allClearBonus: reward.allClearBonus,
         newStreak,
         streakTierName: getStreakTierName(newStreak, prevStreak),
         penaltyResult
@@ -236,15 +242,14 @@ export const useHabitStore = defineStore('habit', {
         return { success: false, message: '昨天已经打过卡了' }
       }
 
-      const typeConfig = HABIT_TYPE_CONFIG[habit.type] || HABIT_TYPE_CONFIG.easy
-      const makeupCost = typeConfig.gold * 2
+      const makeupCost = calculateMakeupCost(habit.type)
 
       const userStore = useUserStore()
       const spendResult = userStore.spendGold(makeupCost, '习惯补卡', {
         habitId,
         date: targetDate,
         isMakeup: true
-      })
+      }, LEDGER_ENTRY_TYPES.MAKEUP)
 
       if (!spendResult.success) {
         return { success: false, message: `补卡需要消耗 ${makeupCost} 金豆，${spendResult.message}` }
@@ -274,22 +279,11 @@ export const useHabitStore = defineStore('habit', {
       if (record.checked) return null
       if (record.penaltyApplied) return null
 
-      // 从昨天开始往前找，跳过断签间隔，找到最近一次连续记录
-      let cursor = shiftDate(new Date(date), -1)
-      let streakBeforeBreak = 0
-      let gapPassed = false
-
-      for (let i = 0; i < 3650; i++) {
-        const cursorDate = getTodayString(cursor)
-        const cursorRecord = this.getCheckRecord(habitId, cursorDate)
-        if (cursorRecord.checked) {
-          streakBeforeBreak++
-          gapPassed = true
-        } else if (gapPassed) {
-          break
-        }
-        cursor = shiftDate(cursor, -1)
-      }
+      const streakBeforeBreak = findStreakBeforeBreak(
+        (hid, d) => this.getCheckRecord(hid, d),
+        habitId,
+        date
+      )
 
       if (streakBeforeBreak < 7) return null
 
@@ -302,7 +296,7 @@ export const useHabitStore = defineStore('habit', {
           habitId,
           streakBeforeBreak,
           isPenalty: true
-        })
+        }, LEDGER_ENTRY_TYPES.PENALTY)
       }
 
       this.setCheckRecord(habitId, date, {

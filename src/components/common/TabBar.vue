@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import AppIcon from './AppIcon.vue'
 
 const route = useRoute()
 
@@ -19,46 +20,18 @@ const activePath = computed(() => {
 </script>
 
 <template>
-  <nav class="tab-bar">
+  <nav class="tab-bar" role="navigation" aria-label="主导航">
     <RouterLink
       v-for="tab in tabs"
       :key="tab.path"
       :to="tab.path"
       class="tab-item"
       :class="{ active: activePath === tab.path }"
+      :aria-label="tab.label"
+      :aria-current="activePath === tab.path ? 'page' : undefined"
     >
       <span class="tab-icon">
-        <!-- 今日 -->
-        <svg v-if="tab.icon === 'home'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-          <polyline points="9 22 9 12 15 12 15 22"/>
-        </svg>
-        <!-- 习惯 -->
-        <svg v-else-if="tab.icon === 'target'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <circle cx="12" cy="12" r="6"/>
-          <circle cx="12" cy="12" r="2"/>
-        </svg>
-        <!-- 奖励 -->
-        <svg v-else-if="tab.icon === 'gift'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="20 12 20 22 4 22 4 12"/>
-          <rect x="2" y="7" width="20" height="5"/>
-          <line x1="12" y1="22" x2="12" y2="7"/>
-          <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
-          <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-        </svg>
-        <!-- 金豆 -->
-        <svg v-else-if="tab.icon === 'coin'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 6v12"/>
-          <path d="M15 9.5c0-1.38-1.34-2.5-3-2.5s-3 1.12-3 2.5 1.34 2.5 3 2.5 3 1.12 3 2.5-1.34 2.5-3 2.5"/>
-        </svg>
-        <!-- 统计 -->
-        <svg v-else-if="tab.icon === 'chart'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="20" x2="18" y2="10"/>
-          <line x1="12" y1="20" x2="12" y2="4"/>
-          <line x1="6" y1="20" x2="6" y2="14"/>
-        </svg>
+        <AppIcon :name="tab.icon" :size="22" />
       </span>
       <span class="tab-label">{{ tab.label }}</span>
     </RouterLink>
@@ -107,11 +80,6 @@ const activePath = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.tab-icon svg {
-  width: 100%;
-  height: 100%;
 }
 
 .tab-label {

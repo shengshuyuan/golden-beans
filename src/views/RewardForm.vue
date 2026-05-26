@@ -83,7 +83,7 @@ function handleSubmit() {
       <div class="field">
         <label class="label">需要多少金豆</label>
         <div class="input-wrap">
-          <input v-model="form.cost" type="number" min="1" placeholder="例如：10" />
+          <input v-model="form.cost" type="number" inputmode="numeric" min="1" placeholder="例如：10" />
         </div>
         <p v-if="errors.cost" class="error-text">{{ errors.cost }}</p>
       </div>

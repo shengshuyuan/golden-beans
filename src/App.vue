@@ -5,6 +5,7 @@ import { useUserStore } from './stores/user'
 import { useHabitStore } from './stores/habit'
 import { useRewardStore } from './stores/reward'
 import { useAnalyticsStore } from './stores/analytics'
+import { runMigrations } from './utils/migration'
 import TabBar from './components/common/TabBar.vue'
 import AppToast from './components/common/AppToast.vue'
 
@@ -14,6 +15,7 @@ const rewardStore = useRewardStore()
 const analyticsStore = useAnalyticsStore()
 
 onMounted(() => {
+  runMigrations()
   userStore.hydrate()
   habitStore.hydrate()
   rewardStore.hydrate()

@@ -6,3 +6,4 @@ dist
 output
 *.log
 *_legacy_backup_20260422*
+.vite

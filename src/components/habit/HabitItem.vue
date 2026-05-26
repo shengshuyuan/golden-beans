@@ -47,7 +47,7 @@ const makeupCost = computed(() => typeConfig.value.gold * 2)
         </button>
       </div>
 
-      <button class="more-btn" @click.stop="showSheet = true">•••</button>
+      <button class="more-btn" aria-label="更多操作" @click.stop="showSheet = true">•••</button>
     </article>
 
     <div v-if="showSheet" class="sheet-mask" @click.self="showSheet = false">

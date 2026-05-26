@@ -100,7 +100,7 @@ function confirmAction() {
         <GoldBeanIcon :size="24" />
         <span class="value">{{ userStore.gold }} 金豆</span>
       </div>
-      <button class="icon-btn" @click="router.push('/stats')">↗</button>
+      <button class="icon-btn" aria-label="查看统计" @click="router.push('/stats')">↗</button>
     </header>
 
     <section class="glass-panel rewards-panel">
@@ -108,7 +108,7 @@ function confirmAction() {
         <h1 class="section-title">我的奖励</h1>
         <div class="head-actions">
           <button class="ghost-btn" @click="router.push('/rewards/history')">兑换记录</button>
-          <button class="icon-btn" @click="router.push('/rewards/new')">+</button>
+          <button class="icon-btn" aria-label="新建奖励" @click="router.push('/rewards/new')">+</button>
         </div>
       </div>
 

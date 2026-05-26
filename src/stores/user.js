@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { storage } from '../utils/storage'
+import { LEDGER_ENTRY_TYPES, createLedgerEntry } from '../domain/goldRules'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -18,20 +19,20 @@ export const useUserStore = defineStore('user', {
       storage.set('gold_ledger', this.ledger)
     },
 
-    addGold(amount, reason = '获得金豆', meta = {}) {
+    addGold(amount, reason = '获得金豆', meta = {}, type = LEDGER_ENTRY_TYPES.CHECK_IN) {
       if (!amount || amount <= 0) return
       this.gold += amount
-      this.ledger.unshift({
-        id: crypto.randomUUID(),
+      this.ledger.unshift(createLedgerEntry({
+        type,
         amount,
+        balanceAfter: this.gold,
         reason,
-        meta,
-        createdAt: new Date().toISOString()
-      })
+        meta
+      }))
       this.persist()
     },
 
-    spendGold(amount, reason = '兑换奖励', meta = {}) {
+    spendGold(amount, reason = '兑换奖励', meta = {}, type = LEDGER_ENTRY_TYPES.REDEEM) {
       if (amount <= 0) {
         return { success: false, message: '兑换数量不正确' }
       }
@@ -41,13 +42,13 @@ export const useUserStore = defineStore('user', {
       }
 
       this.gold -= amount
-      this.ledger.unshift({
-        id: crypto.randomUUID(),
+      this.ledger.unshift(createLedgerEntry({
+        type,
         amount: -amount,
+        balanceAfter: this.gold,
         reason,
-        meta,
-        createdAt: new Date().toISOString()
-      })
+        meta
+      }))
       this.persist()
       return { success: true }
     },

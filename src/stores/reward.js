@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { storage } from '../utils/storage'
 import { useUserStore } from './user'
 import { useAnalyticsStore } from './analytics'
+import { LEDGER_ENTRY_TYPES } from '../domain/goldRules'
 
 function sanitizeReward(reward) {
   return {
@@ -79,7 +80,7 @@ export const useRewardStore = defineStore('reward', {
       }
 
       const userStore = useUserStore()
-      const spendResult = userStore.spendGold(reward.cost, '兑换奖励', { rewardId: id })
+      const spendResult = userStore.spendGold(reward.cost, '兑换奖励', { rewardId: id }, LEDGER_ENTRY_TYPES.REDEEM)
       if (!spendResult.success) {
         return spendResult
       }

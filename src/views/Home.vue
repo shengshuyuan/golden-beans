@@ -179,7 +179,7 @@ function closeSuccessModal() {
           <h1 class="hero-title">{{ greetingText }}</h1>
           <p class="hero-subtitle">{{ motivationalText }}</p>
         </div>
-        <button class="gold-pill" @click="router.push('/gold-ledger')">
+        <button class="gold-pill" aria-label="查看金豆明细" @click="router.push('/gold-ledger')">
           <span class="gold-icon">🫘</span>
           <span class="gold-count">{{ userStore.gold }}</span>
         </button>
