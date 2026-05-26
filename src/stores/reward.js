@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { storage } from '../utils/storage'
 import { useUserStore } from './user'
+import { useAnalyticsStore } from './analytics'
 
 function sanitizeReward(reward) {
   return {
@@ -48,6 +49,8 @@ export const useRewardStore = defineStore('reward', {
       })
       this.rewards.unshift(reward)
       this.persist()
+      const analytics = useAnalyticsStore()
+      analytics.track('reward_created', { rewardId: reward.id, cost: reward.cost })
       return reward
     },
 
@@ -89,6 +92,9 @@ export const useRewardStore = defineStore('reward', {
         createdAt: new Date().toISOString()
       })
       this.persist()
+
+      const analytics = useAnalyticsStore()
+      analytics.track('reward_redeemed', { rewardId: reward.id, cost: reward.cost })
 
       return {
         success: true,

@@ -1,14 +1,26 @@
 <script setup>
+import { computed } from 'vue'
 import BaseModal from './BaseModal.vue'
 
-defineProps({
+const props = defineProps({
   habit: {
     type: Object,
     default: null
+  },
+  makeupCost: {
+    type: Number,
+    default: 0
+  },
+  currentGold: {
+    type: Number,
+    default: 0
   }
 })
 
 defineEmits(['close', 'confirm'])
+
+const canAfford = computed(() => props.currentGold >= props.makeupCost)
+const remaining = computed(() => props.currentGold - props.makeupCost)
 </script>
 
 <template>
@@ -18,13 +30,35 @@ defineEmits(['close', 'confirm'])
     <p class="message">
       为"{{ habit?.name || '这项习惯' }}"补上昨天的记录，连续天数会重新连上。
     </p>
-    <p class="warning">
-      ⚠️ 补卡消耗 2 倍金豆，仅保连续天数
+
+    <div class="cost-card">
+      <div class="cost-row">
+        <span>当前余额</span>
+        <strong>{{ currentGold }} 金豆</strong>
+      </div>
+      <div class="cost-row cost-deduct">
+        <span>补卡消耗（2 倍）</span>
+        <strong>-{{ makeupCost }} 金豆</strong>
+      </div>
+      <div class="cost-divider"></div>
+      <div class="cost-row">
+        <span>补卡后余额</span>
+        <strong :class="{ 'text-danger': !canAfford }">{{ remaining }} 金豆</strong>
+      </div>
+    </div>
+
+    <p v-if="!canAfford" class="warning">
+      金豆不足，先完成几个习惯再补卡吧
+    </p>
+    <p v-else class="warning">
+      ⚠️ 补卡仅保连续天数，不发放打卡奖励
     </p>
 
     <div class="actions">
       <button class="ghost-btn" @click="$emit('close')">再想想</button>
-      <button class="confirm-btn" @click="$emit('confirm')">立即补卡</button>
+      <button class="confirm-btn" :disabled="!canAfford" @click="$emit('confirm')">
+        {{ canAfford ? '立即补卡' : '金豆不足' }}
+      </button>
     </div>
   </BaseModal>
 </template>
@@ -50,6 +84,41 @@ defineEmits(['close', 'confirm'])
   color: $text-secondary;
   font-size: 14px;
   line-height: 1.6;
+}
+
+.cost-card {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fbf6ef;
+}
+
+.cost-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13px;
+  color: $text-secondary;
+
+  strong {
+    color: $text-primary;
+    font-size: 14px;
+  }
+}
+
+.cost-deduct strong {
+  color: #e65100;
+}
+
+.cost-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  margin: 4px 0;
+}
+
+.text-danger {
+  color: #e65100 !important;
 }
 
 .warning {
@@ -85,5 +154,10 @@ defineEmits(['close', 'confirm'])
 .confirm-btn {
   background: linear-gradient(180deg, $primary-color, $primary-deep);
   color: $text-white;
+}
+
+.confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

@@ -4,17 +4,20 @@ import { RouterView } from 'vue-router'
 import { useUserStore } from './stores/user'
 import { useHabitStore } from './stores/habit'
 import { useRewardStore } from './stores/reward'
+import { useAnalyticsStore } from './stores/analytics'
 import TabBar from './components/common/TabBar.vue'
 import AppToast from './components/common/AppToast.vue'
 
 const userStore = useUserStore()
 const habitStore = useHabitStore()
 const rewardStore = useRewardStore()
+const analyticsStore = useAnalyticsStore()
 
 onMounted(() => {
   userStore.hydrate()
   habitStore.hydrate()
   rewardStore.hydrate()
+  analyticsStore.hydrate()
 })
 </script>
 

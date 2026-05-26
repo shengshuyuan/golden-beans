@@ -3,6 +3,7 @@ import { computed, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { HABIT_ICON_OPTIONS, HABIT_TYPE_CONFIG, useHabitStore } from '../stores/habit'
 import { useUiStore } from '../stores/ui'
+import { HABIT_TEMPLATES } from '../config/habitTemplates'
 
 const router = useRouter()
 const route = useRoute()
@@ -11,6 +12,13 @@ const uiStore = useUiStore()
 
 const habitId = computed(() => route.params.id)
 const editingHabit = computed(() => (habitId.value ? habitStore.getHabitById(habitId.value) : null))
+
+function useTemplate(tpl) {
+  form.name = tpl.name
+  form.description = tpl.description
+  form.type = tpl.type
+  form.icon = tpl.icon
+}
 
 const form = reactive({
   name: editingHabit.value?.name || '',
@@ -61,6 +69,23 @@ function handleSubmit() {
       <div class="form-head">
         <p class="eyebrow">{{ editingHabit ? '编辑习惯' : '新建习惯' }}</p>
         <h1 class="page-title">{{ editingHabit ? '调整这项习惯' : '创建一项新习惯' }}</h1>
+      </div>
+
+      <!-- 推荐习惯模板 -->
+      <div v-if="!editingHabit" class="field">
+        <label class="label">推荐习惯</label>
+        <p class="helper-text">点一下直接填入，也可以自己写。</p>
+        <div class="template-grid">
+          <button
+            v-for="tpl in HABIT_TEMPLATES"
+            :key="tpl.name"
+            class="template-card"
+            @click="useTemplate(tpl)"
+          >
+            <span class="template-icon">{{ tpl.icon }}</span>
+            <span class="template-name">{{ tpl.name }}</span>
+          </button>
+        </div>
       </div>
 
       <div class="field">
@@ -280,6 +305,39 @@ function handleSubmit() {
   @include button-primary;
 }
 
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.template-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border-radius: 16px;
+  background: #f8f3ec;
+  transition: background 0.2s;
+}
+
+.template-card:active {
+  background: linear-gradient(180deg, #fff3d8, #ffe3a9);
+}
+
+.template-icon {
+  font-size: 22px;
+}
+
+.template-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: $text-primary;
+  line-height: 1.2;
+  text-align: center;
+}
+
 @media (max-width: 420px) {
   .type-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -287,6 +345,10 @@ function handleSubmit() {
 
   .icon-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .template-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 </style>

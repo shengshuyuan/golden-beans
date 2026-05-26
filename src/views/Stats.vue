@@ -82,6 +82,51 @@ function dayClass(day) {
     partial: getDayStatus(day.date) === 'partial'
   }
 }
+
+// 产品洞察
+const insights = computed(() => {
+  const stats = habitStats.value
+  if (stats.length === 0) return []
+
+  const sorted = [...stats].sort((a, b) => b.rate - a.rate)
+  const mostStable = sorted[0]
+  const weakest = sorted[sorted.length - 1]
+
+  const result = []
+
+  if (mostStable && mostStable.rate > 0) {
+    result.push({
+      icon: '🏆',
+      title: '最稳定习惯',
+      text: `「${mostStable.name}」完成率 ${mostStable.rate}%，保持得很好`
+    })
+  }
+
+  if (weakest && weakest.rate < mostStable?.rate && weakest.rate < 60) {
+    result.push({
+      icon: '💪',
+      title: '可以加强',
+      text: `「${weakest.name}」完成率 ${weakest.rate}%，试试把它拆小一点`
+    })
+  }
+
+  const totalAvg = stats.reduce((sum, h) => sum + h.rate, 0) / stats.length
+  if (totalAvg >= 70) {
+    result.push({
+      icon: '⭐',
+      title: '本周建议',
+      text: '整体完成率不错，可以考虑增加一个新挑战'
+    })
+  } else if (totalAvg < 40) {
+    result.push({
+      icon: '🌱',
+      title: '本周建议',
+      text: '先把习惯数量减少到 2-3 个，专注养成节奏'
+    })
+  }
+
+  return result
+})
 </script>
 
 <template>
@@ -146,6 +191,20 @@ function dayClass(day) {
           </div>
           <div class="rate-bar">
             <div class="rate-progress" :style="{ width: `${habit.rate}%`, backgroundColor: HABIT_TYPE_CONFIG[habit.type]?.color }"></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- 产品洞察 -->
+    <section v-if="insights.length > 0" class="glass-panel insights-card">
+      <h2 class="section-title">洞察与建议</h2>
+      <div class="insight-list">
+        <article v-for="(item, index) in insights" :key="index" class="insight-item">
+          <span class="insight-icon">{{ item.icon }}</span>
+          <div>
+            <p class="insight-title">{{ item.title }}</p>
+            <p class="insight-text">{{ item.text }}</p>
           </div>
         </article>
       </div>
@@ -354,5 +413,45 @@ function dayClass(day) {
   color: $text-secondary;
   font-size: 14px;
   text-align: center;
+}
+
+/* 洞察与建议 */
+.insights-card {
+  padding: 18px 16px;
+}
+
+.insight-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.insight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  background: #f8f3ec;
+}
+
+.insight-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.insight-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: $text-primary;
+  margin: 0;
+}
+
+.insight-text {
+  font-size: 13px;
+  color: $text-secondary;
+  margin: 4px 0 0;
+  line-height: 1.5;
 }
 </style>

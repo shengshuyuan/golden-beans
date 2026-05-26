@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHabitStore, HABIT_TYPE_CONFIG } from '../stores/habit'
 import { useUserStore } from '../stores/user'
+import { useRewardStore } from '../stores/reward'
 import { useUiStore } from '../stores/ui'
 import { getTodayString } from '../utils/date'
 import HabitCard from '../components/habit/HabitCard.vue'
@@ -13,6 +14,7 @@ import CheckSuccessModal from '../components/common/CheckSuccessModal.vue'
 const router = useRouter()
 const habitStore = useHabitStore()
 const userStore = useUserStore()
+const rewardStore = useRewardStore()
 const uiStore = useUiStore()
 
 const currentTab = ref('pending')
@@ -88,6 +90,51 @@ const motivationalText = computed(() => {
   return '快完成了，再加把劲'
 })
 
+// 状态驱动 CTA
+const nextGoalCta = computed(() => {
+  const rewards = rewardStore.rewards
+  const gold = userStore.gold
+
+  // 有习惯但没有奖励
+  if (activeCount.value > 0 && rewards.length === 0) {
+    return {
+      icon: '🎁',
+      text: '设置一个奖励，让金豆有目标',
+      action: () => router.push('/rewards/new')
+    }
+  }
+
+  // 有奖励但金豆不够：找最近可兑换的
+  if (rewards.length > 0) {
+    const sorted = [...rewards].sort((a, b) => a.cost - b.cost)
+    const nearest = sorted.find(r => r.cost > gold)
+    if (nearest) {
+      const deficit = nearest.cost - gold
+      const avgGold = activeCount.value > 0 ? (HABIT_TYPE_CONFIG.easy.gold + HABIT_TYPE_CONFIG.effort.gold + HABIT_TYPE_CONFIG.challenge.gold) / 3 : 3
+      const checkInsNeeded = Math.ceil(deficit / avgGold)
+      return {
+        icon: '🫘',
+        text: `再完成 ${checkInsNeeded} 次可兑换「${nearest.name}」`,
+        action: () => router.push('/rewards')
+      }
+    }
+  }
+
+  // 今天全完成且有可兑换奖励
+  if (pendingCount.value === 0 && completedCount.value > 0) {
+    const affordable = rewards.filter(r => r.cost <= gold)
+    if (affordable.length > 0) {
+      return {
+        icon: '🎉',
+        text: `去看看现在能兑换什么吧`,
+        action: () => router.push('/rewards')
+      }
+    }
+  }
+
+  return null
+})
+
 const panelTitle = computed(() => {
   if (pendingCount.value === 0) return '一步一步，今天已经收得很好'
   return '一步一步，今天也有进展'
@@ -156,6 +203,16 @@ function closeSuccessModal() {
         <button class="primary-btn" @click="router.push('/habits/new')">创建第一个习惯</button>
       </div>
     </section>
+
+    <!-- 状态驱动 CTA -->
+    <button
+      v-if="nextGoalCta && activeCount > 0"
+      class="cta-banner"
+      @click="nextGoalCta.action"
+    >
+      <span class="cta-icon">{{ nextGoalCta.icon }}</span>
+      <span class="cta-text">{{ nextGoalCta.text }}</span>
+    </button>
 
     <!-- 今日习惯列表 -->
     <section v-if="activeCount > 0" class="glass-panel habits-panel">
@@ -393,5 +450,29 @@ function closeSuccessModal() {
   @include button-primary;
   min-width: 200px;
   margin-top: 16px;
+}
+
+/* 状态驱动 CTA */
+.cta-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #fff8ef 0%, #ffecd2 100%);
+  box-shadow: 0 4px 12px rgba(255, 155, 49, 0.12);
+  text-align: left;
+}
+
+.cta-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.cta-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: $primary-deep;
 }
 </style>

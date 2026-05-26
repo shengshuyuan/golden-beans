@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRewardStore } from '../stores/reward'
 import { useUserStore } from '../stores/user'
+import { useHabitStore, HABIT_TYPE_CONFIG } from '../stores/habit'
 import { useUiStore } from '../stores/ui'
 import GoldBeanIcon from '../components/common/GoldBeanIcon.vue'
 import RewardCard from '../components/reward/RewardCard.vue'
@@ -12,6 +13,7 @@ import ConfirmActionModal from '../components/common/ConfirmActionModal.vue'
 const router = useRouter()
 const rewardStore = useRewardStore()
 const userStore = useUserStore()
+const habitStore = useHabitStore()
 const uiStore = useUiStore()
 
 const showSuccessModal = ref(false)
@@ -42,6 +44,24 @@ const lockedRewards = computed(() =>
     .filter(reward => userStore.gold < reward.cost)
     .sort((a, b) => a.cost - b.cost)
 )
+
+// 最近目标：离当前金豆最近的不可兑换奖励
+const nearestGoal = computed(() => {
+  if (lockedRewards.value.length === 0) return null
+  const reward = lockedRewards.value[0]
+  const deficit = reward.cost - userStore.gold
+  const activeHabits = habitStore.activeHabits
+  if (activeHabits.length === 0) return { reward, deficit, checkInsNeeded: 0 }
+  const avgGold = activeHabits.reduce((sum, h) => {
+    const config = HABIT_TYPE_CONFIG[h.type] || HABIT_TYPE_CONFIG.easy
+    return sum + config.gold
+  }, 0) / activeHabits.length
+  return {
+    reward,
+    deficit,
+    checkInsNeeded: Math.ceil(deficit / avgGold)
+  }
+})
 
 function handleRedeem(reward) {
   const result = rewardStore.redeemReward(reward.id)
@@ -100,6 +120,21 @@ function confirmAction() {
         <div class="overview-item">
           <span class="overview-label">奖励总数</span>
           <strong>{{ rewardStore.availableRewards.length }}</strong>
+        </div>
+      </div>
+
+      <!-- 最近目标 -->
+      <div v-if="nearestGoal && nearestGoal.checkInsNeeded > 0" class="goal-banner">
+        <div class="goal-left">
+          <span class="goal-icon">{{ nearestGoal.reward.icon }}</span>
+          <div>
+            <p class="goal-label">最近目标</p>
+            <p class="goal-name">{{ nearestGoal.reward.name }}</p>
+          </div>
+        </div>
+        <div class="goal-right">
+          <span class="goal-deficit">还差 {{ nearestGoal.deficit }} 金豆</span>
+          <span class="goal-hint">约 {{ nearestGoal.checkInsNeeded }} 次打卡</span>
         </div>
       </div>
 
@@ -249,6 +284,61 @@ function confirmAction() {
   color: $text-secondary;
   font-size: 12px;
   font-weight: 700;
+}
+
+/* 最近目标 */
+.goal-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #fff8ef 0%, #ffecd2 100%);
+  border: 1px solid rgba(255, 157, 52, 0.2);
+}
+
+.goal-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.goal-icon {
+  font-size: 28px;
+}
+
+.goal-label {
+  font-size: 11px;
+  color: $text-secondary;
+  font-weight: 700;
+  margin: 0;
+}
+
+.goal-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: $text-primary;
+  margin: 2px 0 0;
+}
+
+.goal-right {
+  text-align: right;
+}
+
+.goal-deficit {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  color: $primary-deep;
+}
+
+.goal-hint {
+  display: block;
+  font-size: 11px;
+  color: $text-secondary;
+  margin-top: 2px;
 }
 
 .rewards-grid {

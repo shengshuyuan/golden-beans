@@ -1,7 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useHabitStore } from '../stores/habit'
+import { useHabitStore, HABIT_TYPE_CONFIG } from '../stores/habit'
+import { useUserStore } from '../stores/user'
 import { useUiStore } from '../stores/ui'
 import HabitItem from '../components/habit/HabitItem.vue'
 import MakeupConfirmModal from '../components/common/MakeupConfirmModal.vue'
@@ -9,7 +10,14 @@ import ConfirmActionModal from '../components/common/ConfirmActionModal.vue'
 
 const router = useRouter()
 const habitStore = useHabitStore()
+const userStore = useUserStore()
 const uiStore = useUiStore()
+
+const makeupCost = computed(() => {
+  if (!selectedHabit.value) return 0
+  const config = HABIT_TYPE_CONFIG[selectedHabit.value.type] || HABIT_TYPE_CONFIG.easy
+  return config.gold * 2
+})
 
 const selectedHabit = ref(null)
 const showMakeupModal = ref(false)
@@ -156,7 +164,14 @@ function confirmAction() {
 
     <p class="page-hint">点开每张卡片右侧的 ••• 可快捷操作</p>
 
-    <MakeupConfirmModal v-if="showMakeupModal" :habit="selectedHabit" @confirm="confirmMakeup" @close="closeMakeupModal" />
+    <MakeupConfirmModal
+      v-if="showMakeupModal"
+      :habit="selectedHabit"
+      :makeup-cost="makeupCost"
+      :current-gold="userStore.gold"
+      @confirm="confirmMakeup"
+      @close="closeMakeupModal"
+    />
     <ConfirmActionModal
       v-if="confirmState.visible"
       :title="confirmState.title"

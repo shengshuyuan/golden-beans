@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { storage } from '../utils/storage'
 import { getTodayString, shiftDate } from '../utils/date'
 import { useUserStore } from './user'
+import { useAnalyticsStore } from './analytics'
 import {
   HABIT_TYPE_CONFIG,
   HABIT_ICON_OPTIONS,
@@ -62,6 +63,8 @@ export const useHabitStore = defineStore('habit', {
       })
       this.habits.unshift(habit)
       this.persist()
+      const analytics = useAnalyticsStore()
+      analytics.track('habit_created', { habitId: habit.id, type: habit.type })
       return habit
     },
 
@@ -203,6 +206,9 @@ export const useHabitStore = defineStore('habit', {
       })
 
       this.persist()
+
+      const analytics = useAnalyticsStore()
+      analytics.track('check_in', { habitId, habitType: habit.type, date, totalGold })
 
       return {
         success: true,
