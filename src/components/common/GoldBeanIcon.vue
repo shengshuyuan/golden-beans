@@ -1,5 +1,5 @@
 <script setup>
-import beanMain from '@/assets/brand/gold-bean-main.png'
+import beanMain from '@/assets/brand/gold-bean-main.webp'
 import beanToken from '@/assets/brand/gold-bean-token.svg'
 
 const props = defineProps({
