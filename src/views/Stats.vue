@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { useHabitStore, HABIT_TYPE_CONFIG } from '../stores/habit'
+import { computed, ref } from 'vue'
+import { HABIT_TYPE_CONFIG, useHabitStore } from '../stores/habit'
 import { useUserStore } from '../stores/user'
 import { getCalendarData, getTodayString } from '../utils/date'
 import GoldBeanIcon from '../components/common/GoldBeanIcon.vue'
@@ -8,148 +8,78 @@ import GoldBeanIcon from '../components/common/GoldBeanIcon.vue'
 const habitStore = useHabitStore()
 const userStore = useUserStore()
 
-const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const weekdayLabels = ['一', '二', '三', '四', '五', '六', '日']
 const currentDate = ref(new Date())
+const today = getTodayString()
 
 const currentYear = computed(() => currentDate.value.getFullYear())
 const currentMonth = computed(() => currentDate.value.getMonth())
 const currentMonthLabel = computed(() => `${currentYear.value}年${currentMonth.value + 1}月`)
-
-const activeHabits = computed(() => habitStore.habits.filter(habit => !habit.archived))
 const calendarData = computed(() => getCalendarData(currentYear.value, currentMonth.value))
-const today = getTodayString()
-
-const monthCompletion = computed(() => {
-  const currentMonthDays = calendarData.value.filter(day => day.isCurrentMonth)
-  const completedDays = currentMonthDays.filter(day => ['all', 'all-makeup'].includes(getDayStatus(day.date))).length
-
-  return {
-    completedDays,
-    totalDays: currentMonthDays.length
-  }
-})
 
 const statistics = computed(() => {
   const userStats = userStore.getStatistics()
+  const activeHabits = habitStore.activeHabits
   let totalChecks = 0
   let currentStreak = 0
   let longestStreak = 0
 
-  activeHabits.value.forEach(habit => {
-    const records = habitStore.checkRecords[habit.id] || {}
+  activeHabits.forEach(habit => {
+    const records = habitStore.getRecordsByHabit(habit.id)
     totalChecks += Object.values(records).filter(record => record.checked).length
-
-    const streak = habitStore.getStreakDays(habit.id)
-    currentStreak = Math.max(currentStreak, streak)
-    longestStreak = Math.max(longestStreak, getLongestStreak(records))
+    currentStreak = Math.max(currentStreak, habitStore.getStreakDays(habit.id))
+    longestStreak = Math.max(longestStreak, habitStore.getLongestStreak(habit.id))
   })
 
   return {
     totalChecks,
-    longestStreak,
     currentStreak,
+    longestStreak,
     totalGold: userStats.totalEarned || userStore.gold
   }
 })
 
-const habitStats = computed(() => {
-  return activeHabits.value.map(habit => {
-    const records = habitStore.checkRecords[habit.id] || {}
-    
-    // 计算总天数：从习惯创建日期到今天
+const habitStats = computed(() =>
+  habitStore.activeHabits.map(habit => {
+    const records = habitStore.getRecordsByHabit(habit.id)
     const createdAt = new Date(habit.createdAt || Date.now())
-    // 抹平时间，只比较日期
     createdAt.setHours(0, 0, 0, 0)
-    const todayDate = new Date()
-    todayDate.setHours(0, 0, 0, 0)
-    
-    const diffTime = Math.abs(todayDate - createdAt)
-    // 至少为1天（今天创建的算1天）
-    const totalDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1)
-    
-    const checkedDays = Object.values(records).filter(record => record.checked).length
-    const rate = Math.min(100, Math.round((checkedDays / totalDays) * 100))
-
+    const current = new Date()
+    current.setHours(0, 0, 0, 0)
+    const totalDays = Math.max(1, Math.ceil((current - createdAt) / 86400000) + 1)
+    const checkedDays = Object.values(records).filter(item => item.checked).length
     return {
       ...habit,
-      rate,
+      rate: Math.min(100, Math.round((checkedDays / totalDays) * 100)),
       streak: habitStore.getStreakDays(habit.id)
     }
   })
+)
+
+const monthCompletion = computed(() => {
+  const days = calendarData.value.filter(day => day.isCurrentMonth)
+  const completed = days.filter(day => getDayStatus(day.date) === 'all').length
+  return {
+    completed,
+    total: days.length
+  }
 })
 
-function prevMonth() {
-  currentDate.value = new Date(currentYear.value, currentMonth.value - 1, 1)
-}
-
-function nextMonth() {
-  currentDate.value = new Date(currentYear.value, currentMonth.value + 1, 1)
-}
-
 function getDayStatus(date) {
-  const habits = activeHabits.value
-  if (habits.length === 0) return 'none'
-
-  let checkedCount = 0
-  let makeupCount = 0
-
-  habits.forEach(habit => {
-    const record = habitStore.getCheckRecord(habit.id, date)
-    if (record.checked) {
-      checkedCount += 1
-      if (record.isMakeup) {
-        makeupCount += 1
-      }
-    }
-  })
-
-  if (checkedCount === habits.length) {
-    return makeupCount > 0 ? 'all-makeup' : 'all'
-  }
-
-  if (checkedCount > 0) {
-    return 'partial'
-  }
-
-  return 'none'
-}
-
-function getLongestStreak(records) {
-  const checkedDates = Object.entries(records)
-    .filter(([, record]) => record.checked)
-    .map(([date]) => date)
-    .sort()
-
-  if (checkedDates.length === 0) {
-    return 0
-  }
-
-  let best = 1
-  let current = 1
-
-  for (let index = 1; index < checkedDates.length; index += 1) {
-    const prevDate = new Date(checkedDates[index - 1])
-    const currentDate = new Date(checkedDates[index])
-    const diff = Math.round((currentDate - prevDate) / (1000 * 60 * 60 * 24))
-
-    if (diff === 1) {
-      current += 1
-      best = Math.max(best, current)
-    } else if (diff > 1) {
-      current = 1
-    }
-  }
-
-  return best
+  const activeHabits = habitStore.activeHabits
+  if (activeHabits.length === 0) return 'none'
+  const checked = activeHabits.filter(habit => habitStore.getCheckRecord(habit.id, date).checked).length
+  if (checked === 0) return 'none'
+  if (checked === activeHabits.length) return 'all'
+  return 'partial'
 }
 
 function dayClass(day) {
   return {
-    'other-month': !day.isCurrentMonth,
+    other: !day.isCurrentMonth,
     today: day.date === today,
-    all: getDayStatus(day.date) === 'all',
-    partial: getDayStatus(day.date) === 'partial',
-    'all-makeup': getDayStatus(day.date) === 'all-makeup'
+    done: getDayStatus(day.date) === 'all',
+    partial: getDayStatus(day.date) === 'partial'
   }
 }
 </script>
@@ -159,13 +89,13 @@ function dayClass(day) {
     <header class="page-header">
       <h1 class="page-title">我的数据</h1>
       <div class="month-switcher">
-        <button class="month-btn" @click="prevMonth">‹</button>
+        <button class="month-btn" @click="currentDate = new Date(currentYear, currentMonth - 1, 1)">‹</button>
         <span class="month-title">{{ currentMonthLabel }}</span>
-        <button class="month-btn" @click="nextMonth">›</button>
+        <button class="month-btn" @click="currentDate = new Date(currentYear, currentMonth + 1, 1)">›</button>
       </div>
     </header>
 
-    <section class="calendar-card glass-panel">
+    <section class="glass-panel calendar-card">
       <div class="weekday-row">
         <span v-for="label in weekdayLabels" :key="label">{{ label }}</span>
       </div>
@@ -177,35 +107,33 @@ function dayClass(day) {
         </div>
       </div>
 
-      <div class="calendar-footer">完成{{ monthCompletion.completedDays }}/{{ monthCompletion.totalDays }}天</div>
+      <div class="calendar-footer">本月完成 {{ monthCompletion.completed }}/{{ monthCompletion.total }} 天</div>
     </section>
 
     <section class="stats-grid">
-      <article class="stat-card glass-panel">
+      <article class="glass-panel stat-card">
         <div class="stat-title">总打卡次数</div>
         <div class="stat-value">{{ statistics.totalChecks }}次</div>
         <div class="stat-emoji">🗓️</div>
       </article>
-      <article class="stat-card glass-panel">
+      <article class="glass-panel stat-card">
         <div class="stat-title">最长连续</div>
         <div class="stat-value">{{ statistics.longestStreak }}天</div>
         <div class="stat-emoji">🏆</div>
       </article>
-      <article class="stat-card glass-panel">
+      <article class="glass-panel stat-card">
         <div class="stat-title">当前连续</div>
-        <div class="stat-value">{{ statistics.currentStreak }}天🔥</div>
-        <div class="stat-emoji">🌱</div>
+        <div class="stat-value">{{ statistics.currentStreak }}天</div>
+        <div class="stat-emoji">🔥</div>
       </article>
-      <article class="stat-card glass-panel">
+      <article class="glass-panel stat-card">
         <div class="stat-title">累计金豆</div>
-        <div class="stat-value">{{ statistics.totalGold }}颗</div>
-        <div class="stat-emoji bean-emoji">
-          <GoldBeanIcon :size="28" :tilt="-12" />
-        </div>
+        <div class="stat-value bean-value">{{ statistics.totalGold }}颗</div>
+        <div class="stat-emoji bean-emoji"><GoldBeanIcon :size="28" /></div>
       </article>
     </section>
 
-    <section class="rate-card glass-panel">
+    <section class="glass-panel rate-card">
       <h2 class="section-title">习惯完成率</h2>
 
       <div v-if="habitStats.length === 0" class="empty-state">还没有习惯数据</div>
@@ -213,10 +141,7 @@ function dayClass(day) {
       <div v-else class="rate-list">
         <article v-for="habit in habitStats" :key="habit.id" class="rate-item">
           <div class="rate-header">
-            <span class="rate-name">
-              {{ habit.icon || HABIT_TYPE_CONFIG[habit.type]?.icon }}
-              {{ habit.name }}
-            </span>
+            <span class="rate-name">{{ habit.icon || HABIT_TYPE_CONFIG[habit.type]?.icon }} {{ habit.name }}</span>
             <span class="rate-value">{{ habit.rate }}%</span>
           </div>
           <div class="rate-bar">
@@ -235,159 +160,145 @@ function dayClass(day) {
 .stats-page {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: 18px;
 }
 
 .page-header {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: 12px;
 }
 
 .page-title {
-  font-size: clamp(28px, 6.6vw, 34px);
-  line-height: 1.12;
+  font-size: 28px;
 }
 
 .month-switcher {
   align-self: flex-end;
   display: inline-flex;
   align-items: center;
-  gap: $spacing-sm;
-  min-height: 50px;
+  gap: 10px;
+  min-height: 44px;
   padding: 0 12px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: $shadow-sm;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86);
 }
 
 .month-btn {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: rgba(255, 248, 238, 0.95);
-  font-size: 22px;
-  line-height: 1;
-  color: $primary-brown;
+  background: #e5e9f0;
+  color: $text-primary;
 }
 
 .month-title {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 800;
 }
 
-.calendar-card {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
+.calendar-card,
+.rate-card {
+  padding: 16px;
+}
+
+.weekday-row,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .weekday-row {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  color: $text-light;
+  font-size: 12px;
   text-align: center;
-  font-size: 13px;
-  font-weight: 700;
-  overflow: hidden;
 }
 
 .calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-  overflow: hidden;
+  margin-top: 10px;
 }
 
 .calendar-day {
-  aspect-ratio: 1;
-  position: relative;
-  border-radius: 18px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 4px;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  background: #f5f7fa;
+}
 
-  &.other-month {
-    opacity: 0.35;
-  }
+.calendar-day.other {
+  opacity: 0.38;
+}
 
-  &.today {
-    box-shadow: inset 0 0 0 3px rgba(255, 165, 59, 0.9);
-  }
+.calendar-day.today {
+  box-shadow: inset 0 0 0 2px rgba(32, 199, 163, 0.5);
+}
 
-  &.all {
-    background: rgba(32, 199, 163, 0.16);
+.calendar-day.done {
+  background: linear-gradient(180deg, #d4ede5, #a8dfc8);
+}
 
-    .day-number {
-      color: $success-color;
-      font-weight: 900;
-    }
-  }
-
-  &.partial,
-  &.all-makeup {
-    .day-number {
-      color: $text-primary;
-      font-weight: 900;
-    }
-  }
-
-  &.partial .day-dot,
-  &.all-makeup .day-dot {
-    background: $primary-color;
-  }
+.calendar-day.partial {
+  background: linear-gradient(180deg, #e8f4ef, #d0eadc);
 }
 
 .day-number {
-  font-size: clamp(12px, 3.3vw, 15px);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .day-dot {
-  position: absolute;
-  bottom: 8px;
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
+  background: #20c7a3;
 }
 
 .calendar-footer {
-  text-align: right;
-  font-size: 15px;
+  margin-top: 12px;
+  color: $text-secondary;
+  font-size: 13px;
   font-weight: 700;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: $spacing-md;
+  gap: 12px;
 }
 
 .stat-card {
   position: relative;
-  min-height: 128px;
-  overflow: hidden;
-  padding-right: 56px;
+  min-height: 130px;
+  padding: 16px;
+  background: linear-gradient(180deg, #f5f7fa, #edf0f5);
 }
 
 .stat-title {
-  margin-bottom: 10px;
-  color: $text-primary;
-  font-size: 15px;
-  font-weight: 800;
+  color: $text-secondary;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .stat-value {
-  max-width: 100%;
-  font-size: clamp(20px, 4.6vw, 28px);
-  line-height: 1.12;
+  margin-top: 12px;
+  max-width: calc(100% - 42px);
+  color: $text-primary;
+  font-size: clamp(24px, 6vw, 32px);
+  line-height: 1.08;
   font-weight: 900;
-  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .stat-emoji {
   position: absolute;
-  right: 16px;
-  bottom: 14px;
-  font-size: 24px;
+  right: 14px;
+  bottom: 12px;
+  font-size: 28px;
 }
 
 .bean-emoji {
@@ -396,59 +307,52 @@ function dayClass(day) {
   justify-content: center;
 }
 
-.rate-card {
-  padding-bottom: $spacing-xl;
-}
-
 .section-title {
-  margin-bottom: $spacing-md;
-  font-size: 24px;
+  font-size: 18px;
 }
 
 .rate-list {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-}
-
-.rate-item {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
 }
 
 .rate-header {
-  @include flex-between;
-  gap: $spacing-sm;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .rate-name {
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.rate-value {
-  font-size: 16px;
+  min-width: 0;
+  font-size: 14px;
   font-weight: 800;
 }
 
+.rate-value {
+  color: #5a6b80;
+  font-size: 14px;
+  font-weight: 900;
+}
+
 .rate-bar {
-  width: 100%;
-  height: 12px;
-  background: rgba(226, 228, 231, 0.92);
+  height: 9px;
   border-radius: $radius-full;
+  background: #e5e9f0;
   overflow: hidden;
 }
 
 .rate-progress {
   height: 100%;
   border-radius: inherit;
-  transition: width 0.45s ease;
 }
 
 .empty-state {
-  text-align: center;
+  padding: 18px 0 4px;
   color: $text-secondary;
-  font-size: $font-md;
+  font-size: 14px;
+  text-align: center;
 }
 </style>

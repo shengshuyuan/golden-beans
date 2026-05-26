@@ -1,61 +1,67 @@
 <script setup>
 import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const router = useRouter()
 
 const tabs = [
-  { path: '/', name: '首页', icon: 'home' },
-  { path: '/habits', name: '习惯', icon: 'habit' },
-  { path: '/rewards', name: '奖励', icon: 'reward' },
-  { path: '/stats', name: '统计', icon: 'stats' }
+  { path: '/', label: '今日', icon: 'home' },
+  { path: '/habits', label: '习惯', icon: 'target' },
+  { path: '/rewards', label: '奖励', icon: 'gift' },
+  { path: '/gold-ledger', label: '金豆', icon: 'coin' },
+  { path: '/stats', label: '统计', icon: 'chart' }
 ]
 
-const currentPath = computed(() => route.path)
-
-function isActive(path) {
-  return currentPath.value === path || (path !== '/' && currentPath.value.startsWith(path))
-}
-
-function navigateTo(path) {
-  router.push(path)
-}
+const activePath = computed(() => {
+  const current = tabs.find(tab => route.path === tab.path || route.path.startsWith(`${tab.path}/`))
+  return current?.path || '/'
+})
 </script>
 
 <template>
   <nav class="tab-bar">
-    <button
+    <RouterLink
       v-for="tab in tabs"
       :key="tab.path"
+      :to="tab.path"
       class="tab-item"
-      :class="{ active: isActive(tab.path) }"
-      @click="navigateTo(tab.path)"
+      :class="{ active: activePath === tab.path }"
     >
       <span class="tab-icon">
-        <svg v-if="tab.icon === 'home'" viewBox="0 0 24 24" fill="none">
-          <path d="M3 12L5 10L12 4L19 10L21 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          <path d="M6 10.5V20H10V15H14V20H18V10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        <!-- 今日 -->
+        <svg v-if="tab.icon === 'home'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
         </svg>
-        <svg v-else-if="tab.icon === 'habit'" viewBox="0 0 24 24" fill="none">
-          <path d="M12 3C12 3 7.5 6.3 7.5 10.8C7.5 13.7 9.3 15.4 12 15.4C14.7 15.4 16.5 13.7 16.5 10.8C16.5 6.3 12 3 12 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          <path d="M12 15.4V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          <path d="M9 18.2H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <!-- 习惯 -->
+        <svg v-else-if="tab.icon === 'target'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <circle cx="12" cy="12" r="6"/>
+          <circle cx="12" cy="12" r="2"/>
         </svg>
-        <svg v-else-if="tab.icon === 'reward'" viewBox="0 0 24 24" fill="none">
-          <path d="M12 4L4 8.5V18L12 22L20 18V8.5L12 4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-          <path d="M4 8.5L12 13L20 8.5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-          <path d="M12 13V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <!-- 奖励 -->
+        <svg v-else-if="tab.icon === 'gift'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 12 20 22 4 22 4 12"/>
+          <rect x="2" y="7" width="20" height="5"/>
+          <line x1="12" y1="22" x2="12" y2="7"/>
+          <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+          <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
         </svg>
-        <svg v-else viewBox="0 0 24 24" fill="none">
-          <path d="M5 20V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          <path d="M11 20V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          <path d="M17 20V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          <path d="M22 20V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <!-- 金豆 -->
+        <svg v-else-if="tab.icon === 'coin'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v12"/>
+          <path d="M15 9.5c0-1.38-1.34-2.5-3-2.5s-3 1.12-3 2.5 1.34 2.5 3 2.5 3 1.12 3 2.5-1.34 2.5-3 2.5"/>
+        </svg>
+        <!-- 统计 -->
+        <svg v-else-if="tab.icon === 'chart'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="20" x2="18" y2="10"/>
+          <line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
         </svg>
       </span>
-      <span class="tab-name">{{ tab.name }}</span>
-    </button>
+      <span class="tab-label">{{ tab.label }}</span>
+    </RouterLink>
   </nav>
 </template>
 
@@ -66,62 +72,50 @@ function navigateTo(path) {
 .tab-bar {
   position: fixed;
   left: 50%;
-  bottom: calc(14px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
-  width: calc(100% - 24px);
-  max-width: 456px;
+  width: min(calc(100% - 20px), 452px);
+  padding: 12px 10px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 18px 36px rgba(158, 112, 57, 0.18);
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: $spacing-xs;
-  padding: $spacing-sm;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.86);
-  border-radius: 30px;
-  box-shadow: 0 22px 65px rgba(111, 72, 24, 0.2);
-  backdrop-filter: blur(20px);
-  z-index: 90;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  z-index: 40;
+  @include safe-area-bottom(12px);
 }
 
 .tab-item {
-  @include flex-column;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 10px 8px;
-  border-radius: 22px;
-  color: #9f9ab5;
-  transition: background $transition-fast, color $transition-fast, transform $transition-fast;
+  gap: 4px;
+  min-height: 62px;
+  padding: 8px 6px;
+  border-radius: 20px;
+  color: #8d8392;
+}
 
-  &:active {
-    transform: scale(0.96);
-  }
-
-  &.active {
-    color: $primary-color;
-    background: linear-gradient(180deg, rgba(255, 232, 198, 0.95), rgba(255, 255, 255, 0.88));
-
-    .tab-icon {
-      transform: translateY(-1px);
-    }
-  }
+.tab-item.active {
+  background: linear-gradient(180deg, rgba(255, 244, 222, 0.98), rgba(255, 238, 204, 0.92));
+  color: $primary-deep;
 }
 
 .tab-icon {
-  width: 28px;
-  height: 28px;
-  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform $transition-fast;
-
-  svg {
-    width: 100%;
-    height: 100%;
-  }
 }
 
-.tab-name {
-  font-size: $font-xs;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+.tab-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.tab-label {
+  font-size: 12px;
+  font-weight: 800;
 }
 </style>

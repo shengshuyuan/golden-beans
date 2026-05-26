@@ -44,10 +44,27 @@ const routes = [
     meta: { title: '编辑奖励' }
   },
   {
+    path: '/rewards/history',
+    name: 'RewardHistory',
+    component: () => import('../views/RewardHistory.vue'),
+    meta: { title: '兑换记录' }
+  },
+  {
     path: '/stats',
     name: 'Stats',
     component: () => import('../views/Stats.vue'),
     meta: { title: '数据统计' }
+  },
+  {
+    path: '/gold-ledger',
+    name: 'GoldLedger',
+    component: () => import('../views/GoldLedger.vue'),
+    meta: { title: '金豆明细' }
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    redirect: '/'
   }
 ]
 
@@ -56,9 +73,8 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫 - 设置页面标题
 router.beforeEach((to, from, next) => {
-  document.title = to.meta.title ? `${to.meta.title} - 习惯养成` : '习惯养成'
+  document.title = to.meta.title ? `${to.meta.title} - 金豆习惯` : '金豆习惯'
   next()
 })
 

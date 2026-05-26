@@ -1,161 +1,113 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { computed, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useRewardStore, REWARD_CATEGORIES } from '../stores/reward'
+import { useRewardStore } from '../stores/reward'
+import { useUiStore } from '../stores/ui'
 
-const route = useRoute()
+const REWARD_ICONS = ['☕', '🍰', '🎬', '🛍️', '🎮', '📺', '🍜', '🧋', '🌷', '🎁', '🧸', '🎧']
+
 const router = useRouter()
+const route = useRoute()
 const rewardStore = useRewardStore()
+const uiStore = useUiStore()
 
-const nameInputRef = ref(null)
+const rewardId = computed(() => route.params.id)
+const editingReward = computed(() => (rewardId.value ? rewardStore.getRewardById(rewardId.value) : null))
 
-const isEditing = ref(false)
-const editingRewardId = ref(null)
-const form = ref({
-  name: '',
-  cost: 50,
-  category: '美食',
-  description: ''
+const form = reactive({
+  name: editingReward.value?.name || '',
+  description: editingReward.value?.description || '',
+  cost: editingReward.value?.cost || '',
+  icon: editingReward.value?.icon || '🎁'
 })
+
 const errors = reactive({
   name: '',
   cost: ''
 })
 
-const categories = Object.values(REWARD_CATEGORIES)
-const presetCosts = [30, 50, 100, 200, 500]
-
-function selectCategory(category) {
-  form.value.category = category.name
+function validate() {
+  errors.name = form.name.trim() ? '' : '请先填写奖励名称'
+  errors.cost = Number(form.cost) > 0 ? '' : '请填写正确的金豆数量'
+  return !errors.name && !errors.cost
 }
 
-function setCost(cost) {
-  form.value.cost = cost
-  errors.cost = ''
-}
-
-function clearError(field) {
-  errors[field] = ''
-}
-
-function handleSave() {
-  if (!form.value.name.trim()) {
-    errors.name = '请输入奖励名称'
-    if (nameInputRef.value) {
-      nameInputRef.value.focus()
-    }
-  }
-
-  if (!Number.isFinite(form.value.cost) || form.value.cost < 1) {
-    errors.cost = '金豆数量必须大于 0'
-  }
-
-  if (errors.name || errors.cost) {
+function handleSubmit() {
+  if (!validate()) {
+    uiStore.showToast('还有内容需要补充', 'error')
     return
   }
 
-  if (isEditing.value && editingRewardId.value) {
-    rewardStore.updateReward(editingRewardId.value, form.value)
+  const payload = {
+    name: form.name.trim(),
+    description: form.description.trim(),
+    cost: Number(form.cost),
+    icon: form.icon
+  }
+
+  if (editingReward.value) {
+    rewardStore.updateReward(editingReward.value.id, payload)
+    uiStore.showToast('奖励已更新', 'success')
   } else {
-    rewardStore.addReward(form.value)
+    rewardStore.addReward(payload)
+    uiStore.showToast('奖励创建成功', 'success')
   }
 
-  router.back()
+  router.push('/rewards')
 }
-
-// 初始化表单数据
-onMounted(() => {
-  const rewardId = route.params.id
-
-  if (rewardId) {
-    isEditing.value = true
-    editingRewardId.value = rewardId
-
-    // 查找要编辑的奖励
-    const reward = rewardStore.rewards.find(r => r.id === rewardId)
-    if (reward) {
-      form.value = {
-        name: reward.name,
-        cost: reward.cost,
-        category: reward.category,
-        description: reward.description || ''
-      }
-    } else {
-      // 如果奖励不存在，返回列表页
-      router.push('/rewards')
-    }
-  }
-})
 </script>
 
 <template>
-  <div class="reward-form-page page-shell">
-    <header class="page-header">
-      <button class="back-btn" @click="router.back()">←</button>
-      <h1 class="page-title">{{ isEditing ? '编辑奖励' : '新建奖励' }}</h1>
-      <div class="spacer"></div>
-    </header>
-
-    <section class="form-card glass-panel">
-      <div class="form-item">
-        <input
-          ref="nameInputRef"
-          v-model="form.name"
-          class="title-input"
-          :class="{ invalid: !!errors.name }"
-          type="text"
-          maxlength="20"
-          placeholder="比如：吃一顿大餐、买喜欢的东西"
-          @input="clearError('name')"
-        />
-        <p v-if="errors.name" class="field-error">{{ errors.name }}</p>
+  <div class="form-page page-shell">
+    <section class="glass-panel form-panel">
+      <div class="form-head">
+        <p class="eyebrow">{{ editingReward ? '编辑奖励' : '新建奖励' }}</p>
+        <h1 class="page-title">{{ editingReward ? '调整奖励内容' : '给自己准备一个奖励' }}</h1>
       </div>
 
-      <div class="form-item">
-        <label class="form-label">奖励分类</label>
-        <div class="category-grid">
+      <div class="field">
+        <label class="label">奖励名称</label>
+        <div class="input-wrap">
+          <input v-model="form.name" type="text" maxlength="24" placeholder="例如：周末一杯奶茶" />
+        </div>
+        <p v-if="errors.name" class="error-text">{{ errors.name }}</p>
+      </div>
+
+      <div class="field">
+        <label class="label">奖励描述（可选）</label>
+        <div class="input-wrap textarea-wrap">
+          <textarea v-model="form.description" rows="3" maxlength="80" placeholder="写一点具体标准，让奖励更有仪式感"></textarea>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">需要多少金豆</label>
+        <div class="input-wrap">
+          <input v-model="form.cost" type="number" min="1" placeholder="例如：10" />
+        </div>
+        <p v-if="errors.cost" class="error-text">{{ errors.cost }}</p>
+      </div>
+
+      <div class="field">
+        <label class="label">奖励图标</label>
+        <div class="icon-grid">
           <button
-            v-for="category in categories"
-            :key="category.name"
-            class="category-chip"
-            :class="{ active: form.category === category.name }"
-            @click="selectCategory(category)"
+            v-for="icon in REWARD_ICONS"
+            :key="icon"
+            class="icon-btn"
+            :class="{ active: form.icon === icon }"
+            @click="form.icon = icon"
           >
-            <span>{{ category.icon }}</span>
-            {{ category.name }}
+            {{ icon }}
           </button>
         </div>
       </div>
 
-      <div class="form-item">
-        <label class="form-label">所需金豆</label>
-        <div class="preset-row">
-          <button
-            v-for="cost in presetCosts"
-            :key="cost"
-            class="preset-btn"
-            :class="{ active: form.cost === cost }"
-            @click="setCost(cost)"
-          >
-            {{ cost }}
-          </button>
-        </div>
-        <div class="cost-field" :class="{ invalid: !!errors.cost }">
-          <input v-model.number="form.cost" type="number" min="1" max="9999" @input="clearError('cost')" />
-          <span>金豆</span>
-        </div>
-        <p v-if="errors.cost" class="field-error">{{ errors.cost }}</p>
-      </div>
-
-      <div class="form-item">
-        <label class="form-label">奖励描述 <span>（可选）</span></label>
-        <textarea v-model="form.description" class="form-textarea" rows="4" maxlength="100" placeholder="描述一下这份奖励会带来的快乐"></textarea>
+      <div class="actions">
+        <button class="ghost-btn" @click="router.back()">取消</button>
+        <button class="primary-btn" @click="handleSubmit">{{ editingReward ? '保存修改' : '创建奖励' }}</button>
       </div>
     </section>
-
-    <footer class="form-footer">
-      <button class="save-btn" @click="handleSave">{{ isEditing ? '保存修改' : '创建奖励' }}</button>
-    </footer>
   </div>
 </template>
 
@@ -163,174 +115,96 @@ onMounted(() => {
 @use '@/assets/styles/variables' as *;
 @use '@/assets/styles/mixins' as *;
 
-.reward-form-page {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-lg;
+.form-panel {
+  padding: 20px 16px;
 }
 
-.page-header {
-  @include flex-between;
-}
-
-.back-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: $shadow-sm;
-  color: $primary-brown;
-  font-size: 24px;
-  font-weight: 700;
+.eyebrow {
+  color: $primary-dark;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .page-title {
-  font-size: clamp(24px, 6.2vw, 30px);
-  color: $primary-brown;
+  margin-top: 4px;
+  font-size: 22px;
+  line-height: 1.2;
 }
 
-.spacer {
-  width: 48px;
+.field + .field {
+  margin-top: 18px;
 }
 
-.form-card {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-lg;
-}
-
-.form-item {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-}
-
-.form-label {
-  font-size: 17px;
+.label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
   font-weight: 800;
-  color: $primary-brown;
-
-  span {
-    font-weight: 500;
-    color: $text-secondary;
-  }
 }
 
-.title-input,
-.cost-field,
-.form-textarea {
-  width: 100%;
-  border-radius: 30px;
-  background: rgba(255, 251, 245, 0.92);
-  box-shadow: inset 0 0 0 2px rgba(211, 180, 148, 0.72);
+.input-wrap {
+  padding: 14px;
+  border-radius: 20px;
+  background: #fbf7f1;
+  box-shadow: inset 0 0 0 1px rgba(236, 215, 184, 0.92);
 }
 
-.title-input.invalid,
-.cost-field.invalid {
-  box-shadow: inset 0 0 0 2px rgba(242, 77, 61, 0.72);
+.textarea-wrap {
+  min-height: 104px;
 }
 
-.title-input {
-  min-height: 74px;
-  padding: 0 20px;
-  font-size: 20px;
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
 }
 
-.category-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-sm;
+.icon-btn {
+  aspect-ratio: 1;
+  border-radius: 18px;
+  background: #fbf7f1;
+  font-size: 24px;
 }
 
-.category-chip {
-  min-height: 48px;
-  padding: 0 16px;
-  border-radius: $radius-full;
-  background: rgba(255, 255, 255, 0.86);
-  color: $text-primary;
-  font-size: 15px;
-  font-weight: 700;
-  box-shadow: $shadow-sm;
-
-  span {
-    margin-right: 8px;
-  }
-
-  &.active {
-    background: rgba(255, 232, 198, 0.95);
-    color: $primary-dark;
-  }
+.icon-btn.active {
+  background: linear-gradient(180deg, #fff5dd, #ffe9bc);
+  box-shadow: inset 0 0 0 2px rgba(255, 157, 52, 0.45);
 }
 
-.preset-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-sm;
-}
-
-.preset-btn {
-  min-width: 72px;
-  min-height: 42px;
-  padding: 0 16px;
-  border-radius: $radius-full;
-  background: rgba(255, 255, 255, 0.82);
-  color: $text-secondary;
-  font-size: 15px;
-  font-weight: 800;
-  box-shadow: $shadow-sm;
-
-  &.active {
-    background: rgba(255, 232, 198, 0.95);
-    color: $primary-dark;
-  }
-}
-
-.cost-field {
-  min-height: 70px;
-  padding: 0 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  input {
-    flex: 1;
-    min-width: 0;
-    font-size: 24px;
-    font-weight: 900;
-    color: $text-primary;
-  }
-
-  span {
-    color: $primary-brown;
-    font-size: 17px;
-    font-weight: 800;
-  }
-}
-
-.form-textarea {
-  min-height: 150px;
-  padding: 20px 22px;
-  resize: none;
-  font-size: 16px;
-}
-
-.field-error {
-  margin-top: -2px;
+.error-text {
+  margin-top: 8px;
   color: $danger-color;
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.form-footer {
-  position: sticky;
-  bottom: 18px;
-  padding-top: 6px;
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 22px;
 }
 
-.save-btn {
+.ghost-btn,
+.primary-btn {
+  min-height: 46px;
+  border-radius: $radius-full;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.ghost-btn {
+  background: #f4eee6;
+  color: $text-secondary;
+}
+
+.primary-btn {
   @include button-primary;
-  width: 100%;
-  min-height: 58px;
-  font-size: 18px;
+}
+
+@media (max-width: 420px) {
+  .icon-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
 }
 </style>
