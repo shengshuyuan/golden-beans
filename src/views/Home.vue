@@ -10,6 +10,7 @@ import HabitCard from '../components/habit/HabitCard.vue'
 import ProgressRing from '../components/common/ProgressRing.vue'
 import CompletionCelebration from '../components/common/CompletionCelebration.vue'
 import CheckSuccessModal from '../components/common/CheckSuccessModal.vue'
+import GoldBeanIcon from '../components/common/GoldBeanIcon.vue'
 
 const router = useRouter()
 const habitStore = useHabitStore()
@@ -113,7 +114,7 @@ const nextGoalCta = computed(() => {
       const avgGold = activeCount.value > 0 ? (HABIT_TYPE_CONFIG.easy.gold + HABIT_TYPE_CONFIG.effort.gold + HABIT_TYPE_CONFIG.challenge.gold) / 3 : 3
       const checkInsNeeded = Math.ceil(deficit / avgGold)
       return {
-        icon: '🫘',
+        icon: 'bean',
         text: `再完成 ${checkInsNeeded} 次可兑换「${nearest.name}」`,
         action: () => router.push('/rewards')
       }
@@ -180,7 +181,7 @@ function closeSuccessModal() {
           <p class="hero-subtitle">{{ motivationalText }}</p>
         </div>
         <button class="gold-pill" aria-label="查看金豆明细" @click="router.push('/gold-ledger')">
-          <span class="gold-icon">🫘</span>
+          <GoldBeanIcon :size="18" />
           <span class="gold-count">{{ userStore.gold }}</span>
         </button>
       </div>
@@ -210,7 +211,10 @@ function closeSuccessModal() {
       class="cta-banner"
       @click="nextGoalCta.action"
     >
-      <span class="cta-icon">{{ nextGoalCta.icon }}</span>
+      <span class="cta-icon">
+        <GoldBeanIcon v-if="nextGoalCta.icon === 'bean'" :size="20" />
+        <template v-else>{{ nextGoalCta.icon }}</template>
+      </span>
       <span class="cta-text">{{ nextGoalCta.text }}</span>
     </button>
 

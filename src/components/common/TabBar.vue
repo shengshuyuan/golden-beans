@@ -9,7 +9,7 @@ const tabs = [
   { path: '/', label: '今日', icon: 'home' },
   { path: '/habits', label: '习惯', icon: 'target' },
   { path: '/rewards', label: '奖励', icon: 'gift' },
-  { path: '/gold-ledger', label: '金豆', icon: 'coin' },
+  { path: '/gold-ledger', label: '金豆', icon: 'bean' },
   { path: '/stats', label: '统计', icon: 'chart' }
 ]
 
