@@ -1,12 +1,19 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useUserStore } from '../stores/user'
+import { useUiStore } from '../stores/ui'
+import { appStorage } from '../repositories/appStorage'
+import BaseModal from '../components/common/BaseModal.vue'
 import GoldBeanIcon from '../components/common/GoldBeanIcon.vue'
 
 const userStore = useUserStore()
+const uiStore = useUiStore()
 
 // 筛选状态
 const activeFilter = ref('all')
+const showImportModal = ref(false)
+const showImportConfirm = ref(false)
+const importPreview = ref(null)
 
 // 筛选后的记录
 const filteredLedger = computed(() => {
@@ -42,12 +49,86 @@ function formatTime(timestamp) {
     minute: '2-digit'
   })
 }
+
+function handleExport() {
+  const json = appStorage.exportJson()
+  const blob = new Blob([json], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  const today = new Date().toISOString().slice(0, 10)
+  a.href = url
+  a.download = `golden-bean-backup-${today}.json`
+  a.click()
+  URL.revokeObjectURL(url)
+  uiStore.showToast('备份文件已下载', 'success')
+}
+
+function handleImportClick() {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.json'
+  input.onchange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    try {
+      const text = await file.text()
+      const data = JSON.parse(text)
+      const state = data.state || data
+      const habits = state.habits || []
+      const records = state.checkRecords || {}
+      const rewards = state.rewards || []
+      const ledger = state.goldLedger || []
+      const totalGold = state.user?.gold ?? 0
+
+      importPreview.value = {
+        json: text,
+        fileName: file.name,
+        habitCount: habits.length,
+        recordCount: Object.values(records).reduce((sum, r) => sum + Object.keys(r).length, 0),
+        rewardCount: rewards.length,
+        ledgerCount: ledger.length,
+        totalGold
+      }
+      showImportModal.value = true
+    } catch {
+      uiStore.showToast('无法读取文件，请确认是金豆备份文件', 'error')
+    }
+  }
+  input.click()
+}
+
+function confirmImport() {
+  showImportModal.value = false
+  showImportConfirm.value = true
+}
+
+function executeImport() {
+  if (!importPreview.value) return
+  const result = appStorage.importJson(importPreview.value.json)
+  showImportConfirm.value = false
+
+  if (result.success) {
+    userStore.hydrate()
+    uiStore.showToast('数据恢复成功，页面将刷新', 'success')
+    setTimeout(() => location.reload(), 800)
+  } else {
+    uiStore.showToast(result.error || '导入失败', 'error')
+  }
+  importPreview.value = null
+}
 </script>
 
 <template>
   <div class="ledger-page page-shell">
     <header class="page-header">
-      <h1 class="page-title">金豆明细</h1>
+      <div class="header-row">
+        <h1 class="page-title">金豆明细</h1>
+        <div class="header-actions">
+          <button class="icon-btn" aria-label="导出备份" @click="handleExport">↓</button>
+          <button class="icon-btn" aria-label="导入备份" @click="handleImportClick">↑</button>
+        </div>
+      </div>
       <div class="summary-strip">
         <div class="summary-item">
           <span class="summary-label">当前余额</span>
@@ -98,6 +179,52 @@ function formatTime(timestamp) {
         </div>
       </div>
     </section>
+
+    <!-- 导入预览 -->
+    <BaseModal v-if="showImportModal" max-width="360px" @close="showImportModal = false">
+      <div class="import-preview">
+        <h3 class="import-title">导入备份</h3>
+        <p class="import-file">文件：{{ importPreview?.fileName }}</p>
+        <div class="import-stats">
+          <div class="import-stat">
+            <span class="stat-label">习惯</span>
+            <strong>{{ importPreview?.habitCount }} 个</strong>
+          </div>
+          <div class="import-stat">
+            <span class="stat-label">打卡记录</span>
+            <strong>{{ importPreview?.recordCount }} 条</strong>
+          </div>
+          <div class="import-stat">
+            <span class="stat-label">奖励</span>
+            <strong>{{ importPreview?.rewardCount }} 个</strong>
+          </div>
+          <div class="import-stat">
+            <span class="stat-label">金豆明细</span>
+            <strong>{{ importPreview?.ledgerCount }} 条</strong>
+          </div>
+          <div class="import-stat">
+            <span class="stat-label">金豆余额</span>
+            <strong>{{ importPreview?.totalGold }}</strong>
+          </div>
+        </div>
+        <div class="import-actions">
+          <button class="ghost-btn" @click="showImportModal = false">取消</button>
+          <button class="primary-btn" @click="confirmImport">确认导入</button>
+        </div>
+      </div>
+    </BaseModal>
+
+    <!-- 二次确认 -->
+    <BaseModal v-if="showImportConfirm" max-width="340px" @close="showImportConfirm = false">
+      <div class="import-confirm">
+        <h3 class="confirm-title">⚠️ 确认覆盖</h3>
+        <p class="confirm-text">导入会覆盖当前所有本地数据，此操作不可撤销。建议先导出当前数据备份。</p>
+        <div class="import-actions">
+          <button class="ghost-btn" @click="showImportConfirm = false">取消</button>
+          <button class="danger-btn" @click="executeImport">确认覆盖</button>
+        </div>
+      </div>
+    </BaseModal>
   </div>
 </template>
 
@@ -117,8 +244,28 @@ function formatTime(timestamp) {
   gap: 14px;
 }
 
+.header-row {
+  @include flex-between;
+}
+
 .page-title {
   font-size: 28px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.88);
+  color: $text-secondary;
+  font-size: 18px;
+  font-weight: 800;
+  box-shadow: $shadow-sm;
 }
 
 .summary-strip {
@@ -298,5 +445,90 @@ function formatTime(timestamp) {
   color: $text-secondary;
   font-size: 14px;
   line-height: 1.6;
+}
+
+/* 导入弹窗 */
+.import-preview,
+.import-confirm {
+  text-align: center;
+}
+
+.import-title,
+.confirm-title {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
+.import-file {
+  color: $text-secondary;
+  font-size: 13px;
+  margin: 0 0 16px;
+}
+
+.confirm-text {
+  color: $text-secondary;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 16px;
+}
+
+.import-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.import-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 14px;
+  background: #fbf6ef;
+
+  .stat-label {
+    font-size: 11px;
+    color: $text-secondary;
+    font-weight: 700;
+  }
+
+  strong {
+    font-size: 15px;
+    font-weight: 900;
+    color: $primary-deep;
+  }
+}
+
+.import-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.ghost-btn {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 16px;
+  background: #f5f0e8;
+  color: $text-secondary;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.primary-btn {
+  @include button-primary;
+  flex: 1;
+}
+
+.danger-btn {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff3b30 100%);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
 }
 </style>

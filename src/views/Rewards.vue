@@ -50,8 +50,9 @@ const nearestGoal = computed(() => {
   if (lockedRewards.value.length === 0) return null
   const reward = lockedRewards.value[0]
   const deficit = reward.cost - userStore.gold
+  const progress = Math.min(100, Math.round((userStore.gold / reward.cost) * 100))
   const activeHabits = habitStore.activeHabits
-  if (activeHabits.length === 0) return { reward, deficit, checkInsNeeded: 0 }
+  if (activeHabits.length === 0) return { reward, deficit, checkInsNeeded: 0, progress }
   const avgGold = activeHabits.reduce((sum, h) => {
     const config = HABIT_TYPE_CONFIG[h.type] || HABIT_TYPE_CONFIG.easy
     return sum + config.gold
@@ -59,7 +60,8 @@ const nearestGoal = computed(() => {
   return {
     reward,
     deficit,
-    checkInsNeeded: Math.ceil(deficit / avgGold)
+    checkInsNeeded: Math.ceil(deficit / avgGold),
+    progress
   }
 })
 
@@ -136,6 +138,10 @@ function confirmAction() {
           <span class="goal-deficit">还差 {{ nearestGoal.deficit }} 金豆</span>
           <span class="goal-hint">约 {{ nearestGoal.checkInsNeeded }} 次打卡</span>
         </div>
+        <div class="goal-progress-bar">
+          <div class="goal-progress-fill" :style="{ width: `${nearestGoal.progress}%` }"></div>
+        </div>
+        <p class="goal-progress-label">{{ userStore.gold }} / {{ nearestGoal.reward.cost }} 金豆</p>
       </div>
 
       <div v-if="rewardStore.availableRewards.length === 0" class="empty-state">
@@ -289,6 +295,7 @@ function confirmAction() {
 /* 最近目标 */
 .goal-banner {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -339,6 +346,29 @@ function confirmAction() {
   font-size: 11px;
   color: $text-secondary;
   margin-top: 2px;
+}
+
+.goal-progress-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 157, 52, 0.15);
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.goal-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #ffc664, #ff9b31);
+  transition: width 0.5s ease;
+}
+
+.goal-progress-label {
+  font-size: 11px;
+  color: $text-light;
+  text-align: right;
+  margin: 4px 0 0;
 }
 
 .rewards-grid {

@@ -38,9 +38,9 @@ const completedHabits = computed(() => habitStore.getCompletedHabitsByDate(today
 const pendingCount = computed(() => pendingHabits.value.length)
 const completedCount = computed(() => completedHabits.value.length)
 const activeCount = computed(() => activeHabits.value.length)
-// 今日基础奖励（所有习惯的基础金豆总和）
+// 今日剩余基础奖励（仅未完成习惯的基础金豆）
 const todayBaseReward = computed(() => {
-  return activeHabits.value.reduce((sum, habit) => {
+  return pendingHabits.value.reduce((sum, habit) => {
     const config = HABIT_TYPE_CONFIG[habit.type] || HABIT_TYPE_CONFIG.easy
     return sum + config.gold
   }, 0)
@@ -54,12 +54,12 @@ const nextHabit = computed(() => {
 
 const nextHabitName = computed(() => nextHabit.value?.name || '')
 
-// 今日已得金豆
+// 今日已得金豆（从真实账本计算，包含基础奖励、连续奖励、全清奖励）
 const todayEarned = computed(() => {
-  return completedHabits.value.reduce((sum, habit) => {
-    const config = HABIT_TYPE_CONFIG[habit.type] || HABIT_TYPE_CONFIG.easy
-    return sum + config.gold
-  }, 0)
+  const todayStart = new Date(today.value + 'T00:00:00').getTime()
+  return userStore.ledger
+    .filter(entry => entry.amount > 0 && new Date(entry.createdAt).getTime() >= todayStart)
+    .reduce((sum, entry) => sum + entry.amount, 0)
 })
 
 // 最高连续天数
@@ -196,11 +196,25 @@ function closeSuccessModal() {
         :today-base-reward="todayBaseReward"
       />
 
-      <!-- 无习惯时 -->
+      <!-- 新用户引导 -->
       <div v-else class="empty-hero">
         <div class="empty-hero-icon">🌤️</div>
-        <h2 class="empty-hero-title">今天的计划已经准备好了吗</h2>
-        <p class="empty-hero-text">先创建一个小习惯，开始积累你的第一颗金豆。</p>
+        <h2 class="empty-hero-title">从一个小习惯开始</h2>
+        <p class="empty-hero-text">创建习惯 → 打卡 → 获得金豆 → 兑换奖励</p>
+        <div class="onboard-steps">
+          <div class="onboard-step" :class="{ done: activeCount > 0 }">
+            <span class="step-badge">1</span>
+            <span>创建第一个习惯</span>
+          </div>
+          <div class="onboard-step" :class="{ done: rewardStore.rewards.length > 0 }">
+            <span class="step-badge">2</span>
+            <span>设置一个奖励目标</span>
+          </div>
+          <div class="onboard-step" :class="{ done: userStore.ledger.length > 0 }">
+            <span class="step-badge">3</span>
+            <span>完成一次打卡</span>
+          </div>
+        </div>
         <button class="primary-btn" @click="router.push('/habits/new')">创建第一个习惯</button>
       </div>
     </section>
@@ -358,6 +372,52 @@ function closeSuccessModal() {
   margin-top: 8px;
   font-size: 14px;
   color: $text-secondary;
+}
+
+.onboard-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
+  text-align: left;
+}
+
+.onboard-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 600;
+  color: $text-secondary;
+  opacity: 0.7;
+}
+
+.onboard-step.done {
+  opacity: 1;
+  background: rgba(52, 199, 89, 0.1);
+  color: #34c759;
+}
+
+.step-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e5e9f0;
+  font-size: 12px;
+  font-weight: 800;
+  color: $text-secondary;
+  flex-shrink: 0;
+}
+
+.onboard-step.done .step-badge {
+  background: #34c759;
+  color: white;
 }
 
 /* 习惯列表 */

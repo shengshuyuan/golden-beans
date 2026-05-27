@@ -48,7 +48,7 @@ const progressOffset = computed(() => {
         <span class="next-name">{{ nextHabitName }}</span>
       </div>
       <div class="progress-reward">
-        <span class="reward-text">今日基础奖励</span>
+        <span class="reward-text">{{ pendingCount > 0 ? '完成剩余可得' : '今日基础奖励' }}</span>
         <span class="reward-value">+{{ todayBaseReward }} 金豆</span>
       </div>
     </div>
