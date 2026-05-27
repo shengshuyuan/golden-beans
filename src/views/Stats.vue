@@ -66,12 +66,35 @@ function getDayStatus(date) {
   return getDayStatusUtil(date, habitStore.activeHabits, (hid, d) => habitStore.getCheckRecord(hid, d))
 }
 
+// 计算日历热力等级（连续完成天数 → 深度）
+const calendarHeat = computed(() => {
+  const heat = {}
+  let streak = 0
+  const days = calendarData.value.filter(d => d.isCurrentMonth).sort((a, b) => a.date.localeCompare(b.date))
+  for (const day of days) {
+    const status = getDayStatus(day.date)
+    if (status === 'all') {
+      streak++
+      heat[day.date] = Math.min(streak, 4)
+    } else if (status === 'partial') {
+      heat[day.date] = 0.5
+      streak = 0
+    } else {
+      heat[day.date] = 0
+      streak = 0
+    }
+  }
+  return heat
+})
+
 function dayClass(day) {
+  const heat = calendarHeat.value[day.date] || 0
   return {
     other: !day.isCurrentMonth,
     today: day.date === today,
     done: getDayStatus(day.date) === 'all',
-    partial: getDayStatus(day.date) === 'partial'
+    partial: getDayStatus(day.date) === 'partial',
+    [`heat-${heat}`]: heat > 0 && getDayStatus(day.date) === 'all'
   }
 }
 
@@ -137,6 +160,37 @@ const weekCompletion = computed(() => {
     completed += habitStore.getCompletedHabitsByDate(ds).length
   }
   return { completed, total }
+})
+
+// 上周完成率（用于对比）
+const lastWeekCompletion = computed(() => {
+  const now = new Date()
+  const thisWeekStart = new Date(now)
+  thisWeekStart.setDate(now.getDate() - now.getDay() + 1)
+  thisWeekStart.setHours(0, 0, 0, 0)
+  const lastWeekStart = new Date(thisWeekStart)
+  lastWeekStart.setDate(lastWeekStart.getDate() - 7)
+  let completed = 0
+  let total = 0
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(lastWeekStart)
+    d.setDate(lastWeekStart.getDate() + i)
+    const ds = getTodayString(d)
+    habitStore.activeHabits.forEach(() => { total++ })
+    completed += habitStore.getCompletedHabitsByDate(ds).length
+  }
+  return { completed, total }
+})
+
+const weekComparison = computed(() => {
+  const curr = weekCompletion.value.total > 0 ? weekCompletion.value.completed / weekCompletion.value.total : 0
+  const prev = lastWeekCompletion.value.total > 0 ? lastWeekCompletion.value.completed / lastWeekCompletion.value.total : 0
+  if (prev === 0 && curr === 0) return { text: '持平', direction: 'flat' }
+  if (prev === 0) return { text: '新纪录', direction: 'up' }
+  const change = Math.round(((curr - prev) / prev) * 100)
+  if (change > 0) return { text: `↑${change}%`, direction: 'up' }
+  if (change < 0) return { text: `↓${Math.abs(change)}%`, direction: 'down' }
+  return { text: '持平', direction: 'flat' }
 })
 </script>
 
@@ -227,6 +281,9 @@ const weekCompletion = computed(() => {
         <span v-if="ratePeriod === 'week'">{{ weekCompletion.completed }}/{{ weekCompletion.total }}</span>
         <span v-else>{{ monthCompletion.completed }}/{{ monthCompletion.total }}</span>
         <span class="rate-summary-label">{{ ratePeriod === 'week' ? '本周完成' : '本月完成' }}</span>
+        <span v-if="ratePeriod === 'week' && weekComparison.direction !== 'flat'" class="week-compare" :class="weekComparison.direction">
+          {{ weekComparison.text }} vs 上周
+        </span>
       </div>
 
       <div v-if="habitStats.length === 0" class="empty-state">还没有习惯数据</div>
@@ -351,6 +408,28 @@ const weekCompletion = computed(() => {
 
 .calendar-day.partial {
   background: linear-gradient(180deg, #e8f4ef, #d0eadc);
+}
+
+/* 热力图等级 */
+.calendar-day.heat-1 {
+  background: #c8f5dc;
+}
+
+.calendar-day.heat-2 {
+  background: #8ee4b8;
+}
+
+.calendar-day.heat-3 {
+  background: #5cd99a;
+}
+
+.calendar-day.heat-4 {
+  background: #34c759;
+}
+
+.calendar-day.heat-4 .day-number {
+  color: white;
+  font-weight: 800;
 }
 
 .day-number {
@@ -500,6 +579,24 @@ const weekCompletion = computed(() => {
   font-size: 12px;
   color: $text-secondary;
   font-weight: 700;
+}
+
+.week-compare {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.week-compare.up {
+  background: rgba(52, 199, 89, 0.15);
+  color: #34c759;
+}
+
+.week-compare.down {
+  background: rgba(255, 59, 48, 0.12);
+  color: #ff3b30;
 }
 
 .section-title {
