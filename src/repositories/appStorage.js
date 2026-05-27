@@ -389,16 +389,12 @@ export const appStorage = {
           return { success: false, error: '备份数据异常：打卡记录超限' }
         }
       }
-      // Validate habitId references in checkRecords
+      // Validate habitId references in checkRecords (structure: { habitId: { date: record } })
       if (migrated.checkRecords && Array.isArray(migrated.habits)) {
         const habitIds = new Set(migrated.habits.map(h => h.id))
-        for (const [, ids] of Object.entries(migrated.checkRecords)) {
-          if (Array.isArray(ids)) {
-            for (const id of ids) {
-              if (!habitIds.has(id)) {
-                return { success: false, error: '备份数据异常：打卡记录引用了不存在的习惯' }
-              }
-            }
+        for (const habitId of Object.keys(migrated.checkRecords)) {
+          if (!habitIds.has(habitId)) {
+            return { success: false, error: '备份数据异常：打卡记录引用了不存在的习惯' }
           }
         }
       }
