@@ -372,6 +372,37 @@ export const appStorage = {
 
       const rawState = data.state || data
       const migrated = migrateState(rawState)
+
+      // ── Validation: reject obviously malicious data ──
+      if (typeof migrated.user?.gold !== 'number' || migrated.user.gold < 0 || migrated.user.gold > 999999) {
+        return { success: false, error: '备份数据异常：金豆数量无效' }
+      }
+      if (!Array.isArray(migrated.habits) || migrated.habits.length > 500) {
+        return { success: false, error: '备份数据异常：习惯数量超限' }
+      }
+      if (!Array.isArray(migrated.goldLedger) || migrated.goldLedger.length > 10000) {
+        return { success: false, error: '备份数据异常：账本记录超限' }
+      }
+      if (migrated.checkRecords && typeof migrated.checkRecords === 'object') {
+        const keys = Object.keys(migrated.checkRecords)
+        if (keys.length > 3650) {
+          return { success: false, error: '备份数据异常：打卡记录超限' }
+        }
+      }
+      // Validate habitId references in checkRecords
+      if (migrated.checkRecords && Array.isArray(migrated.habits)) {
+        const habitIds = new Set(migrated.habits.map(h => h.id))
+        for (const [, ids] of Object.entries(migrated.checkRecords)) {
+          if (Array.isArray(ids)) {
+            for (const id of ids) {
+              if (!habitIds.has(id)) {
+                return { success: false, error: '备份数据异常：打卡记录引用了不存在的习惯' }
+              }
+            }
+          }
+        }
+      }
+
       const result = this.save(migrated)
 
       return { ...result, state: migrated }

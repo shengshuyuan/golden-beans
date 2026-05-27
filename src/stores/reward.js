@@ -9,7 +9,7 @@ function sanitizeReward(reward) {
     id: reward.id,
     name: reward.name || '',
     description: reward.description || '',
-    cost: Number(reward.cost) || 0,
+    cost: Math.max(1, Number(reward.cost) || 0),
     icon: reward.icon || '🎁',
     createdAt: reward.createdAt || new Date().toISOString(),
     updatedAt: reward.updatedAt || new Date().toISOString()
