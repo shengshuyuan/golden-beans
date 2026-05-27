@@ -13,7 +13,12 @@ const uiStore = useUiStore()
 const activeFilter = ref('all')
 const showImportModal = ref(false)
 const showImportConfirm = ref(false)
+const showRestoreConfirm = ref(false)
 const importPreview = ref(null)
+
+// 备份和存储健康
+const backupInfo = computed(() => appStorage.getBackupInfo())
+const storageHealth = computed(() => appStorage.checkHealth())
 
 // 筛选后的记录
 const filteredLedger = computed(() => {
@@ -117,6 +122,35 @@ function executeImport() {
   }
   importPreview.value = null
 }
+
+function confirmRestore() {
+  showRestoreConfirm.value = true
+}
+
+function executeRestore() {
+  showRestoreConfirm.value = false
+  const result = appStorage.restoreFromBackup()
+  if (result.success) {
+    userStore.hydrate()
+    uiStore.showToast('已从自动备份恢复，页面将刷新', 'success')
+    setTimeout(() => location.reload(), 800)
+  } else {
+    uiStore.showToast(result.error || '恢复失败', 'error')
+  }
+}
+
+function formatBackupTime(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const now = new Date()
+  const diffMs = now - d
+  const diffMin = Math.floor(diffMs / 60000)
+  if (diffMin < 1) return '刚刚'
+  if (diffMin < 60) return `${diffMin} 分钟前`
+  const diffHr = Math.floor(diffMin / 60)
+  if (diffHr < 24) return `${diffHr} 小时前`
+  return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
 </script>
 
 <template>
@@ -149,6 +183,14 @@ function executeImport() {
         <button class="filter-btn" :class="{ active: activeFilter === 'all' }" @click="activeFilter = 'all'">全部</button>
         <button class="filter-btn" :class="{ active: activeFilter === 'income' }" @click="activeFilter = 'income'">收入</button>
         <button class="filter-btn" :class="{ active: activeFilter === 'expense' }" @click="activeFilter = 'expense'">支出</button>
+      </div>
+
+      <!-- 存储状态 -->
+      <div v-if="storageHealth.critical" class="storage-warning critical">
+        <span>⚠️ 存储空间即将用尽（{{ storageHealth.usage }}%），旧数据将自动清理</span>
+      </div>
+      <div v-else-if="storageHealth.warning" class="storage-warning">
+        <span>存储空间使用 {{ storageHealth.usage }}%</span>
       </div>
     </header>
 
@@ -222,6 +264,32 @@ function executeImport() {
         <div class="import-actions">
           <button class="ghost-btn" @click="showImportConfirm = false">取消</button>
           <button class="danger-btn" @click="executeImport">确认覆盖</button>
+        </div>
+      </div>
+    </BaseModal>
+
+    <!-- 数据管理 -->
+    <section class="glass-panel data-manage">
+      <h3 class="manage-title">数据管理</h3>
+      <div class="manage-row">
+        <div class="manage-info">
+          <span class="manage-label">自动备份</span>
+          <span v-if="backupInfo.exists" class="manage-value safe">{{ formatBackupTime(backupInfo.savedAt) }}</span>
+          <span v-else class="manage-value">暂无备份</span>
+        </div>
+        <button v-if="backupInfo.exists" class="ghost-btn small" @click="confirmRestore">恢复</button>
+      </div>
+      <p class="manage-hint">每次操作自动备份，导入前也会自动备份，防止数据丢失。</p>
+    </section>
+
+    <!-- 恢复确认 -->
+    <BaseModal v-if="showRestoreConfirm" max-width="340px" @close="showRestoreConfirm = false">
+      <div class="import-confirm">
+        <h3 class="confirm-title">恢复自动备份</h3>
+        <p class="confirm-text">将用最近一次自动备份覆盖当前数据。当前数据会先备份，不用担心丢失。</p>
+        <div class="import-actions">
+          <button class="ghost-btn" @click="showRestoreConfirm = false">取消</button>
+          <button class="primary-btn" @click="executeRestore">确认恢复</button>
         </div>
       </div>
     </BaseModal>
@@ -530,5 +598,76 @@ function executeImport() {
   color: white;
   font-size: 14px;
   font-weight: 700;
+}
+
+/* 存储状态 */
+.storage-warning {
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: rgba(255, 159, 10, 0.1);
+  font-size: 12px;
+  font-weight: 600;
+  color: #cc7a00;
+}
+
+.storage-warning.critical {
+  background: rgba(255, 59, 48, 0.1);
+  color: #ff3b30;
+}
+
+/* 数据管理 */
+.data-manage {
+  padding: 16px;
+}
+
+.manage-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: $text-primary;
+  margin: 0 0 12px;
+}
+
+.manage-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.manage-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.manage-label {
+  font-size: 12px;
+  color: $text-secondary;
+  font-weight: 700;
+}
+
+.manage-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: $text-primary;
+}
+
+.manage-value.safe {
+  color: #34c759;
+}
+
+.manage-hint {
+  margin-top: 10px;
+  font-size: 11px;
+  color: $text-light;
+  line-height: 1.5;
+}
+
+.ghost-btn.small {
+  min-height: 32px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 12px;
+  flex: 0;
 }
 </style>

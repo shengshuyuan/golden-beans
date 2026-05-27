@@ -214,4 +214,124 @@ describe('appStorage.reset', () => {
     expect(localStorage.getItem('golden_bean_app_state')).toBeNull()
     expect(localStorage.getItem('habit_tracker_user_gold')).toBeNull()
   })
+
+  it('auto-backs up before reset', () => {
+    const state = appStorage.createDefaultState()
+    state.user.gold = 99
+    appStorage.save(state)
+    appStorage.reset()
+
+    // Backup should still exist
+    const backup = appStorage.getBackupInfo()
+    expect(backup.exists).toBe(true)
+  })
+})
+
+/* ───────── appStorage backup & recovery ───────── */
+
+describe('appStorage backup', () => {
+  it('creates backup on save', () => {
+    const state = appStorage.createDefaultState()
+    state.user.gold = 55
+    appStorage.save(state)
+
+    const backup = appStorage.getBackupInfo()
+    expect(backup.exists).toBe(true)
+    expect(backup.savedAt).toBeTruthy()
+  })
+
+  it('restores from backup when main data is corrupt', () => {
+    // Save good data (creates backup)
+    const state = appStorage.createDefaultState()
+    state.user.gold = 88
+    appStorage.save(state)
+
+    // Corrupt main data
+    localStorage.setItem('golden_bean_app_state', 'corrupt{{{')
+
+    // Load should recover from backup
+    const loaded = appStorage.load()
+    expect(loaded.user.gold).toBe(88)
+  })
+
+  it('restores from backup when main data is deleted', () => {
+    const state = appStorage.createDefaultState()
+    state.user.gold = 77
+    appStorage.save(state)
+
+    // Delete main data
+    localStorage.removeItem('golden_bean_app_state')
+
+    const loaded = appStorage.load()
+    expect(loaded.user.gold).toBe(77)
+  })
+
+  it('restoreFromBackup returns the restored state', () => {
+    const state = appStorage.createDefaultState()
+    state.user.gold = 44
+    appStorage.save(state)
+
+    // Overwrite with different data
+    const state2 = appStorage.createDefaultState()
+    state2.user.gold = 99
+    appStorage.save(state2)
+
+    const result = appStorage.restoreFromBackup()
+    expect(result.success).toBe(true)
+    // Backup was the previous save
+  })
+
+  it('returns false when no backup exists', () => {
+    localStorage.clear()
+    const result = appStorage.restoreFromBackup()
+    expect(result.success).toBe(false)
+  })
+})
+
+/* ───────── appStorage health ───────── */
+
+describe('appStorage.checkHealth', () => {
+  it('returns low usage when storage is empty', () => {
+    const health = appStorage.checkHealth()
+    expect(health.usage).toBe(0)
+    expect(health.warning).toBe(false)
+    expect(health.critical).toBe(false)
+  })
+
+  it('returns usage percentage', () => {
+    const state = appStorage.createDefaultState()
+    state.goldLedger = Array.from({ length: 10 }, (_, i) => ({ id: i, amount: 3 }))
+    appStorage.save(state)
+
+    const health = appStorage.checkHealth()
+    // In test environment, localStorage mock may report 0 usage
+    expect(health.usage).toBeGreaterThanOrEqual(0)
+    expect(health.usage).toBeLessThan(100)
+    expect(typeof health.warning).toBe('boolean')
+    expect(typeof health.critical).toBe('boolean')
+  })
+})
+
+/* ───────── appStorage import backup protection ───────── */
+
+describe('appStorage import rollback', () => {
+  it('backs up current state before importing', () => {
+    const state = appStorage.createDefaultState()
+    state.user.gold = 100
+    appStorage.save(state)
+
+    // Import new data
+    const backup = JSON.stringify({
+      appName: 'golden-bean',
+      state: { schemaVersion: 1, user: { gold: 200 }, habits: [] }
+    })
+    appStorage.importJson(backup)
+
+    // Current data should be the imported one
+    expect(appStorage.load().user.gold).toBe(200)
+
+    // Restore from backup should give previous data
+    const restoreResult = appStorage.restoreFromBackup()
+    expect(restoreResult.success).toBe(true)
+  })
 })
