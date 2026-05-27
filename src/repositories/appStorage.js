@@ -436,6 +436,34 @@ export const appStorage = {
     }
   },
 
+  /**
+   * Async version of save. Returns a Promise.
+   * When integrating Supabase, replace the implementation here
+   * while keeping the sync version for backward compatibility.
+   * @param {object} state
+   * @returns {Promise<{ success: boolean, error?: string }>}
+   */
+  async saveAsync(state) {
+    return this.save(state)
+  },
+
+  /**
+   * Async version of patch. Returns a Promise.
+   * @param {(state: object) => object} updater
+   * @returns {Promise<{ success: boolean, state?: object, error?: string }>}
+   */
+  async patchAsync(updater) {
+    return this.patch(updater)
+  },
+
+  /**
+   * Async version of load. Returns a Promise.
+   * @returns {Promise<object>}
+   */
+  async loadAsync() {
+    return this.load()
+  },
+
   /** Expose the key for testing */
   APP_STORAGE_KEY,
 
