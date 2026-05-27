@@ -175,7 +175,12 @@ export const useHabitStore = defineStore('habit', {
     },
 
     canMakeup(habitId) {
+      const habit = this.getHabitById(habitId)
+      if (!habit) return false
       const yesterday = getTodayString(shiftDate(new Date(), -1))
+      // 习惯创建日期不能晚于昨天，否则昨天不存在，不需要补卡
+      const createdDate = getTodayString(new Date(habit.createdAt))
+      if (createdDate > yesterday) return false
       return !this.getCheckRecord(habitId, yesterday).checked
     },
 

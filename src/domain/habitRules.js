@@ -49,7 +49,7 @@ export function calculateMakeupCost(habitType) {
  */
 export function getComebackReward(newStreak, streakBeforeBreak) {
   if (streakBeforeBreak < 7) return 0
-  if (newStreak >= 3) return 10
+  if (newStreak === 3) return 10
   return 0
 }
 
