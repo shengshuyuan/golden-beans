@@ -2,7 +2,8 @@
 defineProps({
   name: {
     type: String,
-    required: true
+    required: true,
+    validator: val => ['home', 'target', 'gift', 'bean', 'chart', 'plus', 'back', 'arrow', 'check'].includes(val)
   },
   size: {
     type: Number,

@@ -186,7 +186,7 @@ function handleCheckIn(event) {
 .check-btn {
   @include button-primary;
   min-width: 70px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 4px 12px;
   display: flex;
   flex-direction: column;
@@ -208,7 +208,7 @@ function handleCheckIn(event) {
 
 .makeup-btn {
   min-width: 70px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 4px 12px;
   border-radius: 16px;
   background: linear-gradient(135deg, #fff3e0, #ffe0b2);
@@ -232,8 +232,8 @@ function handleCheckIn(event) {
 }
 
 .checked-mark {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;

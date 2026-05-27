@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import BaseModal from './BaseModal.vue'
 import GoldBeanIcon from './GoldBeanIcon.vue'
+import { STREAK_REWARD_TIERS } from '../../config/habitConstants'
 
 const props = defineProps({
   result: {
@@ -27,7 +28,7 @@ const rewards = computed(() => {
 const milestone = computed(() => {
   if (!props.result?.newStreak) return null
   const streak = props.result.newStreak
-  const milestones = [3, 7, 14, 21, 30, 60, 100, 180, 365]
+  const milestones = STREAK_REWARD_TIERS.map(t => t.days)
   if (milestones.includes(streak)) {
     return { days: streak, message: `连续 ${streak} 天达成！` }
   }
