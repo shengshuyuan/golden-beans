@@ -1,0 +1,16 @@
+{
+  "name": "金豆习惯",
+  "short_name": "金豆",
+  "description": "用金豆激励自己，每天坚持好习惯",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fbf6ef",
+  "theme_color": "#ff9d34",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

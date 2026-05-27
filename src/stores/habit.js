@@ -10,7 +10,7 @@ import {
   getStreakTierName,
   getStreakBreakPenalty
 } from '../config/habitConstants'
-import { calculateCheckInReward, calculateMakeupCost, findStreakBeforeBreak } from '../domain/habitRules'
+import { calculateCheckInReward, calculateMakeupCost, findStreakBeforeBreak, getComebackReward } from '../domain/habitRules'
 import { LEDGER_ENTRY_TYPES } from '../domain/goldRules'
 
 // Re-export for backward compatibility
@@ -179,6 +179,18 @@ export const useHabitStore = defineStore('habit', {
       return !this.getCheckRecord(habitId, yesterday).checked
     },
 
+    getStreakBreakWarnings(date = getTodayString()) {
+      const pending = this.getPendingHabitsByDate(date)
+      const warnings = []
+      pending.forEach(habit => {
+        const streak = this.getStreakDays(habit.id)
+        if (streak >= 7) {
+          warnings.push({ habit, streak, penalty: getStreakBreakPenalty(streak) })
+        }
+      })
+      return warnings
+    },
+
     checkIn(habitId, date = getTodayString()) {
       const habit = this.getHabitById(habitId)
       if (!habit) {
@@ -210,12 +222,20 @@ export const useHabitStore = defineStore('habit', {
         getMilestoneBonus
       })
 
+      // 回归奖励：断签后重新连续 3 天 +10 金豆
+      const streakBeforeBreak = penaltyResult?.streakBeforeBreak || 0
+      const comebackBonus = getComebackReward(newStreak, streakBeforeBreak)
+      if (comebackBonus > 0) {
+        reward.totalGold += comebackBonus
+      }
+
       const userStore = useUserStore()
       userStore.addGold(reward.totalGold, '完成习惯', {
         habitId,
         date,
         streakBonus: reward.streakBonus,
-        allClearBonus: reward.allClearBonus
+        allClearBonus: reward.allClearBonus,
+        comebackBonus
       }, LEDGER_ENTRY_TYPES.CHECK_IN)
 
       this.persist()
@@ -230,6 +250,7 @@ export const useHabitStore = defineStore('habit', {
         baseGold: reward.baseGold,
         streakBonus: reward.streakBonus,
         allClearBonus: reward.allClearBonus,
+        comebackBonus,
         newStreak,
         streakTierName: getStreakTierName(newStreak, prevStreak),
         penaltyResult

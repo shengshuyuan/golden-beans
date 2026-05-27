@@ -18,6 +18,15 @@ const emit = defineEmits(['checkIn', 'click'])
 const habitStore = useHabitStore()
 const typeConfig = computed(() => HABIT_TYPE_CONFIG[props.habit.type] || HABIT_TYPE_CONFIG.easy)
 const streak = computed(() => habitStore.getStreakDays(props.habit.id))
+const checkedAt = computed(() => {
+  if (!props.completed) return ''
+  const record = habitStore.getCheckRecord(props.habit.id)
+  if (!record.checkedAt) return ''
+  const d = new Date(record.checkedAt)
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${hh}:${mm}`
+})
 
 // 下一个里程碑
 const nextMilestone = computed(() => {
@@ -51,7 +60,8 @@ function handleCheckIn(event) {
       <div class="habit-meta">
         <span v-if="streak > 0" class="streak-pill">连续{{ streak }}天</span>
         <span v-else class="reward-pill">+{{ typeConfig.gold }} 金豆</span>
-        <span v-if="completed" class="done-pill">今日完成</span>
+        <span v-if="completed && checkedAt" class="done-pill">{{ checkedAt }} 完成</span>
+        <span v-else-if="completed" class="done-pill">今日完成</span>
       </div>
       <p v-if="!completed && streak > 0 && nextMilestone" class="streak-hint">
         再 {{ daysToMilestone }} 天冲 {{ nextMilestone.days }} 天奖励
@@ -59,7 +69,7 @@ function handleCheckIn(event) {
     </div>
 
     <button v-if="!completed" class="check-btn" @click="handleCheckIn">
-      <span class="check-text">打卡</span>
+      <span class="check-go">GO</span>
       <span class="check-reward">+{{ typeConfig.gold }}</span>
     </button>
     <div v-else class="checked-mark">✓</div>
@@ -169,25 +179,25 @@ function handleCheckIn(event) {
 
 .check-btn {
   @include button-primary;
-  min-width: 80px;
+  min-width: 70px;
   min-height: 40px;
-  padding: 0 12px;
-  font-size: 13px;
+  padding: 4px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
 }
 
-.check-text {
-  font-size: 13px;
-  font-weight: 800;
+.check-go {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 1px;
 }
 
 .check-reward {
   font-size: 11px;
   font-weight: 700;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .checked-mark {

@@ -35,6 +35,19 @@ export function calculateMakeupCost(habitType) {
 }
 
 /**
+ * Calculate comeback reward for resuming after a break.
+ * If the user broke a streak of 7+ days and now has a new streak of 3+ days, award bonus.
+ * @param {number} newStreak - current streak after this check-in
+ * @param {number} streakBeforeBreak - streak count before the break
+ * @returns {number} bonus gold (0 if no comeback)
+ */
+export function getComebackReward(newStreak, streakBeforeBreak) {
+  if (streakBeforeBreak < 7) return 0
+  if (newStreak >= 3) return 10
+  return 0
+}
+
+/**
  * Find the streak count before a break (pure function).
  * Scans backwards from `date`, skipping the gap, to find the most recent
  * consecutive streak that was broken.

@@ -96,6 +96,17 @@ const nextGoalCta = computed(() => {
   const rewards = rewardStore.rewards
   const gold = userStore.gold
 
+  // 断签预警
+  const breakWarnings = habitStore.getStreakBreakWarnings()
+  if (breakWarnings.length > 0 && pendingCount.value > 0) {
+    const w = breakWarnings[0]
+    return {
+      icon: '⚠️',
+      text: `${w.habit.name} 连续 ${w.streak} 天，今天不打卡将扣 ${w.penalty} 金豆`,
+      action: null
+    }
+  }
+
   // 有习惯但没有奖励
   if (activeCount.value > 0 && rewards.length === 0) {
     return {
@@ -177,6 +188,7 @@ function closeSuccessModal() {
     <section class="hero-section">
       <div class="hero-top">
         <div class="hero-greeting">
+          <span class="hero-eyebrow">今日关卡</span>
           <h1 class="hero-title">{{ greetingText }}</h1>
           <p class="hero-subtitle">{{ motivationalText }}</p>
         </div>
@@ -316,6 +328,17 @@ function closeSuccessModal() {
 
 .hero-greeting {
   flex: 1;
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  background: rgba(255, 180, 74, 0.18);
+  color: $primary-brown;
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 4px;
 }
 
 .hero-title {

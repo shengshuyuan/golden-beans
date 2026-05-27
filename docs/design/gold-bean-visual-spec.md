@@ -8,8 +8,8 @@
 
 | 文件 | 尺寸 | 用途 | 优先级 |
 |------|------|------|--------|
-| `src/assets/brand/gold-bean-main.png` | 1024x1024 (1.5MB) | 大尺寸展示、庆祝弹窗、空状态插画 | 首选 |
-| `src/assets/brand/gold-bean-main.svg` | 1024x1024 | PNG 兜底、需要矢量缩放的场景 | 备选 |
+| `src/assets/brand/gold-bean-main.webp` | 1024x1024 (120KB) | 大尺寸展示、庆祝弹窗、空状态插画 | 首选 |
+| `src/assets/brand/gold-bean-main.svg` | 1024x1024 | WebP 兜底、需要矢量缩放的场景 | 备选 |
 | `src/assets/brand/gold-bean-token.svg` | 128x128 | 行内小图标：余额、按钮、明细行 | 首选 |
 
 ---
@@ -19,11 +19,11 @@
 ### 大尺寸展示（64px+）
 
 **场景：** GoldBeanCard 主展示区、打卡成功弹窗、空状态插画
-**资产：** `gold-bean-main.png`
+**资产：** `gold-bean-main.webp`
 **实现：** `<img>` 标签，固定宽高，`object-fit: contain`
 
 ```vue
-<img :src="beanMainPng" :width="size" :height="size" alt="" class="gold-bean-img" />
+<img :src="beanMainWebp" :width="size" :height="size" alt="" class="gold-bean-img" />
 ```
 
 ### 小尺寸图标（16-48px）
