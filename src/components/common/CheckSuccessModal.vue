@@ -18,7 +18,8 @@ const rewards = computed(() => {
     { label: '打卡奖励', value: props.result.baseGold || 0, icon: '🎯' },
     { label: '连续奖励', value: props.result.streakBonus || 0, icon: '🔥' },
     { label: '全清加成', value: props.result.allClearBonus || 0, icon: '⭐' },
-    { label: '回归奖励', value: props.result.comebackBonus || 0, icon: '🌈' }
+    { label: '回归奖励', value: props.result.comebackBonus || 0, icon: '🌈' },
+    { label: '首次打卡', value: props.result.firstCheckInBonus || 0, icon: '🌅' }
   ].filter(item => item.value > 0)
 })
 

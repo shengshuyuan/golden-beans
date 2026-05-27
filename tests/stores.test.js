@@ -77,7 +77,8 @@ describe('habitStore', () => {
       expect(result.success).toBe(true)
       expect(result.baseGold).toBe(3)
       expect(result.allClearBonus).toBe(0)
-      expect(userStore.gold).toBe(3)
+      // First daily check-in gets +2 bonus
+      expect(userStore.gold).toBe(3 + 2)
     })
 
     it('awards correct gold for effort habit', () => {
@@ -122,7 +123,8 @@ describe('habitStore', () => {
       const habit = addTestHabit(habitStore, { type: 'easy' })
       habitStore.checkIn(habit.id)
       expect(userStore.ledger.length).toBeGreaterThan(0)
-      expect(userStore.ledger[0].amount).toBe(3)
+      // First daily check-in: 3 base + 2 bonus = 5
+      expect(userStore.ledger[0].amount).toBe(5)
     })
   })
 

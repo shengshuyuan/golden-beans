@@ -92,18 +92,19 @@ const motivationalText = computed(() => {
 })
 
 // 状态驱动 CTA
+const streakWarnings = computed(() => habitStore.getStreakBreakWarnings())
 const nextGoalCta = computed(() => {
   const rewards = rewardStore.rewards
   const gold = userStore.gold
 
-  // 断签预警
-  const breakWarnings = habitStore.getStreakBreakWarnings()
-  if (breakWarnings.length > 0 && pendingCount.value > 0) {
-    const w = breakWarnings[0]
+  // 断签预警优先级最高
+  if (streakWarnings.value.length > 0 && pendingCount.value > 0) {
+    const w = streakWarnings.value[0]
     return {
       icon: '⚠️',
-      text: `${w.habit.name} 连续 ${w.streak} 天，今天不打卡将扣 ${w.penalty} 金豆`,
-      action: null
+      text: `${w.habit.name} 已连续 ${w.streak} 天，今天不打卡将中断记录`,
+      action: null,
+      type: 'warning'
     }
   }
 
@@ -177,6 +178,15 @@ function handleCheckIn(habit) {
   successResult.value = result
 }
 
+function handleMakeup(habit) {
+  const result = habitStore.makeupCheckIn(habit.id)
+  if (result.success) {
+    uiStore.showToast(result.message, 'success')
+  } else {
+    uiStore.showToast(result.message, 'error')
+  }
+}
+
 function closeSuccessModal() {
   successResult.value = null
 }
@@ -196,6 +206,12 @@ function closeSuccessModal() {
           <GoldBeanIcon :size="18" />
           <span class="gold-count">{{ userStore.gold }}</span>
         </button>
+      </div>
+
+      <!-- 待完成胶囊 -->
+      <div v-if="activeCount > 0 && pendingCount > 0" class="pending-capsule">
+        <span class="capsule-dot"></span>
+        <span>今日还差 <strong>{{ pendingCount }}</strong> 项</span>
       </div>
 
       <!-- 今日进度环 -->
@@ -233,8 +249,9 @@ function closeSuccessModal() {
 
     <!-- 状态驱动 CTA -->
     <button
-      v-if="nextGoalCta && activeCount > 0"
+      v-if="nextGoalCta && nextGoalCta.action && activeCount > 0"
       class="cta-banner"
+      :class="{ 'cta-warning': nextGoalCta.type === 'warning' }"
       @click="nextGoalCta.action"
     >
       <span class="cta-icon">
@@ -243,6 +260,13 @@ function closeSuccessModal() {
       </span>
       <span class="cta-text">{{ nextGoalCta.text }}</span>
     </button>
+    <div
+      v-else-if="nextGoalCta && nextGoalCta.type === 'warning' && activeCount > 0"
+      class="cta-banner cta-warning"
+    >
+      <span class="cta-icon">{{ nextGoalCta.icon }}</span>
+      <span class="cta-text">{{ nextGoalCta.text }}</span>
+    </div>
 
     <!-- 今日习惯列表 -->
     <section v-if="activeCount > 0" class="glass-panel habits-panel">
@@ -286,6 +310,7 @@ function closeSuccessModal() {
           :completed="currentTab === 'completed'"
           @click="router.push(`/habits/${habit.id}/edit`)"
           @check-in="handleCheckIn"
+          @makeup="handleMakeup"
         />
       </div>
     </section>
@@ -561,5 +586,41 @@ function closeSuccessModal() {
   font-size: 14px;
   font-weight: 700;
   color: $primary-deep;
+}
+
+.cta-warning {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+
+  .cta-text {
+    color: #e65100;
+  }
+}
+
+/* 待完成胶囊 */
+.pending-capsule {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  color: $text-secondary;
+  font-weight: 600;
+  margin-top: 8px;
+
+  strong {
+    color: $primary-deep;
+    font-weight: 900;
+  }
+}
+
+.capsule-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff9b31;
+  animation: pulse 2s infinite;
 }
 </style>

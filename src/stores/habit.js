@@ -229,13 +229,21 @@ export const useHabitStore = defineStore('habit', {
         reward.totalGold += comebackBonus
       }
 
+      // 每日首次打卡 +2 额外金豆
+      const todayCompleted = this.getCompletedHabitsByDate(date)
+      const firstCheckInBonus = todayCompleted.length <= 1 ? 2 : 0
+      if (firstCheckInBonus > 0) {
+        reward.totalGold += firstCheckInBonus
+      }
+
       const userStore = useUserStore()
       userStore.addGold(reward.totalGold, '完成习惯', {
         habitId,
         date,
         streakBonus: reward.streakBonus,
         allClearBonus: reward.allClearBonus,
-        comebackBonus
+        comebackBonus,
+        firstCheckInBonus
       }, LEDGER_ENTRY_TYPES.CHECK_IN)
 
       this.persist()
@@ -251,6 +259,7 @@ export const useHabitStore = defineStore('habit', {
         streakBonus: reward.streakBonus,
         allClearBonus: reward.allClearBonus,
         comebackBonus,
+        firstCheckInBonus,
         newStreak,
         streakTierName: getStreakTierName(newStreak, prevStreak),
         penaltyResult

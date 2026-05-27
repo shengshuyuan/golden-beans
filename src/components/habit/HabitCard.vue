@@ -13,11 +13,13 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['checkIn', 'click'])
+const emit = defineEmits(['checkIn', 'makeup', 'click'])
 
 const habitStore = useHabitStore()
 const typeConfig = computed(() => HABIT_TYPE_CONFIG[props.habit.type] || HABIT_TYPE_CONFIG.easy)
 const streak = computed(() => habitStore.getStreakDays(props.habit.id))
+const canMakeup = computed(() => !props.completed && habitStore.canMakeup(props.habit.id))
+const makeupCost = computed(() => typeConfig.value.gold * 2)
 const checkedAt = computed(() => {
   if (!props.completed) return ''
   const record = habitStore.getCheckRecord(props.habit.id)
@@ -71,6 +73,10 @@ function handleCheckIn(event) {
     <button v-if="!completed" class="check-btn" @click="handleCheckIn">
       <span class="check-go">GO</span>
       <span class="check-reward">+{{ typeConfig.gold }}</span>
+    </button>
+    <button v-else-if="canMakeup" class="makeup-btn" @click.stop="$emit('makeup', habit)">
+      <span class="makeup-label">补卡</span>
+      <span class="makeup-cost">-{{ makeupCost }}</span>
     </button>
     <div v-else class="checked-mark">✓</div>
   </article>
@@ -198,6 +204,31 @@ function handleCheckIn(event) {
   font-size: 11px;
   font-weight: 700;
   opacity: 0.85;
+}
+
+.makeup-btn {
+  min-width: 70px;
+  min-height: 40px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.makeup-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: #e65100;
+}
+
+.makeup-cost {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ff9800;
 }
 
 .checked-mark {

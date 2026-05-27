@@ -155,9 +155,22 @@ function confirmAction() {
         <!-- 可兑换推荐 -->
         <div v-if="affordableRewards.length > 0" class="reward-section">
           <h2 class="section-label accent">现在可兑换</h2>
+          <!-- 置顶推荐卡片 -->
+          <div v-if="affordableRewards.length > 0" class="featured-reward" @click="$emit('redeem', affordableRewards[0])">
+            <div class="featured-badge">推荐</div>
+            <div class="featured-icon">{{ affordableRewards[0].icon || '🎁' }}</div>
+            <div class="featured-info">
+              <h3 class="featured-name">{{ affordableRewards[0].name }}</h3>
+              <p class="featured-desc">{{ affordableRewards[0].description || '完成目标，兑换奖励' }}</p>
+            </div>
+            <div class="featured-action">
+              <span class="featured-cost">{{ affordableRewards[0].cost }} 金豆</span>
+              <span class="featured-btn">兑换</span>
+            </div>
+          </div>
           <div class="rewards-grid">
             <RewardCard
-              v-for="reward in affordableRewards"
+              v-for="reward in affordableRewards.slice(1)"
               :key="reward.id"
               :reward="reward"
               can-afford
@@ -395,6 +408,79 @@ function confirmAction() {
 
 .section-label.accent {
   color: #e65100;
+}
+
+/* 推荐卡片 */
+.featured-reward {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  margin-top: 12px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #fff8ef, #ffecd2);
+  border: 2px solid rgba(255, 155, 49, 0.3);
+  box-shadow: 0 4px 16px rgba(255, 155, 49, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.featured-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 3px 12px;
+  border-radius: 0 20px 0 12px;
+  background: linear-gradient(135deg, #ff9b31, #ff6b35);
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.featured-icon {
+  font-size: 36px;
+  flex-shrink: 0;
+}
+
+.featured-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.featured-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: $text-primary;
+  margin: 0;
+}
+
+.featured-desc {
+  font-size: 12px;
+  color: $text-secondary;
+  margin: 4px 0 0;
+}
+
+.featured-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.featured-cost {
+  font-size: 12px;
+  font-weight: 700;
+  color: $primary-brown;
+}
+
+.featured-btn {
+  padding: 8px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ffbf61, #ff922f);
+  color: white;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .empty-state {
