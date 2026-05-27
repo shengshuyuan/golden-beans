@@ -23,9 +23,15 @@ Object.defineProperty(globalThis, 'crypto', {
 })
 
 describe('全流程集成测试', () => {
-  beforeEach(() => {
+  let appStorageRef = null
+
+  beforeEach(async () => {
     localStorageMock.clear()
     vi.clearAllMocks()
+    // Clear appStorage cache
+    const { appStorage } = await import('../../src/repositories/appStorage.js')
+    appStorageRef = appStorage
+    appStorageRef.clearCache()
   })
 
   describe('场景1: 新用户首次使用', () => {

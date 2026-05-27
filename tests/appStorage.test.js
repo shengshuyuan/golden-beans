@@ -4,6 +4,7 @@ import { migrateState, normalizeState, CURRENT_SCHEMA_VERSION } from '../src/rep
 
 beforeEach(() => {
   localStorage.clear()
+  appStorage.clearCache()
 })
 
 /* ───────── normalizeState ───────── */

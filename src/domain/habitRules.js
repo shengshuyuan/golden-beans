@@ -8,19 +8,25 @@ import { getTodayString, shiftDate } from '../utils/date'
  * @param {number} params.newStreak - streak after this check-in
  * @param {number} params.prevStreak - streak before this check-in
  * @param {number} params.pendingCount - remaining pending habits AFTER this one
+ * @param {number} params.todayCompletedCount - how many habits completed today so far (including this one)
+ * @param {number} params.streakBeforeBreak - streak before the most recent break (0 if no break)
  * @param {function} params.getMilestoneBonus - milestone bonus calculator
- * @returns {{ baseGold, streakBonus, allClearBonus, totalGold }}
+ * @returns {{ baseGold, streakBonus, allClearBonus, comebackBonus, firstCheckInBonus, totalGold }}
  */
-export function calculateCheckInReward({ habitType, newStreak, prevStreak, pendingCount, getMilestoneBonus }) {
+export function calculateCheckInReward({ habitType, newStreak, prevStreak, pendingCount, todayCompletedCount = 1, streakBeforeBreak = 0, getMilestoneBonus }) {
   const typeConfig = HABIT_TYPE_CONFIG[habitType] || HABIT_TYPE_CONFIG.easy
   const baseGold = typeConfig.gold
   const streakBonus = getMilestoneBonus(newStreak, prevStreak)
   const allClearBonus = pendingCount === 0 ? 3 : 0
+  const comebackBonus = getComebackReward(newStreak, streakBeforeBreak)
+  const firstCheckInBonus = todayCompletedCount <= 1 ? 2 : 0
   return {
     baseGold,
     streakBonus,
     allClearBonus,
-    totalGold: baseGold + streakBonus + allClearBonus
+    comebackBonus,
+    firstCheckInBonus,
+    totalGold: baseGold + streakBonus + allClearBonus + comebackBonus + firstCheckInBonus
   }
 }
 

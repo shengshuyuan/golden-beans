@@ -2,9 +2,11 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useHabitStore } from '../src/stores/habit'
 import { useUserStore } from '../src/stores/user'
+import { appStorage } from '../src/repositories/appStorage'
 
 function setup() {
   localStorage.clear()
+  appStorage.clearCache()
   setActivePinia(createPinia())
   const habitStore = useHabitStore()
   const userStore = useUserStore()

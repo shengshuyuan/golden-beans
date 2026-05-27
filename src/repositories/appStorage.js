@@ -202,6 +202,7 @@ function loadLegacyState() {
 // ── multi-tab sync ──────────────────────────────────────
 
 let syncListeners = []
+let loadCache = null
 
 function notifyListeners(newData) {
   syncListeners.forEach(fn => {
@@ -219,14 +220,16 @@ export const appStorage = {
    * 3. If everything fails, return default state
    */
   load() {
+    if (loadCache) return loadCache
+
     try {
       const { state, recovered } = loadWithRecovery()
       if (state) {
         if (recovered) {
-          // Save recovered data back to main key
           this.save(migrateState(state))
         }
-        return migrateState(state)
+        loadCache = migrateState(state)
+        return loadCache
       }
     } catch { /* fall through */ }
 
@@ -235,10 +238,12 @@ export const appStorage = {
       const legacy = loadLegacyState()
       const migrated = migrateState(legacy)
       this.save(migrated)
+      loadCache = migrated
       return migrated
     } catch { /* fall through */ }
 
-    return createDefaultState()
+    loadCache = createDefaultState()
+    return loadCache
   },
 
   /**
@@ -247,24 +252,20 @@ export const appStorage = {
    */
   save(state) {
     try {
-      // Ensure all fields are present
       const toSave = {
         ...state,
         schemaVersion: CURRENT_SCHEMA_VERSION,
         user: { ...state.user, lastActiveAt: new Date().toISOString() }
       }
 
-      // Trim for quota if needed
       const usage = estimateUsage()
       const finalState = usage > QUOTA_WARN_RATIO ? trimForQuota(toSave) : toSave
 
-      // Write main data
       const json = JSON.stringify(finalState)
       localStorage.setItem(APP_STORAGE_KEY, json)
-
-      // Write backup (separate key)
       writeBackup(finalState)
 
+      loadCache = null
       return { success: true }
     } catch (e) {
       // If quota exceeded, try trimming more aggressively
@@ -308,11 +309,11 @@ export const appStorage = {
    */
   reset() {
     try {
-      // Auto-backup before reset
       const current = this.load()
       writeBackup(current)
 
       localStorage.removeItem(APP_STORAGE_KEY)
+      loadCache = null
       // Also clean legacy keys
       const legacyKeys = [
         'habit_tracker_user_gold',
@@ -471,7 +472,10 @@ export const appStorage = {
   BACKUP_KEY,
 
   /** Expose default state for testing */
-  createDefaultState
+  createDefaultState,
+
+  /** Clear the load cache (for testing) */
+  clearCache() { loadCache = null }
 }
 
 // ── multi-tab sync via storage events ────────────────────
@@ -479,6 +483,7 @@ export const appStorage = {
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => {
     if (e.key === APP_STORAGE_KEY && e.newValue) {
+      loadCache = null
       try {
         const newData = JSON.parse(e.newValue)
         notifyListeners(newData)

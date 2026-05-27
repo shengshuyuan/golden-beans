@@ -47,6 +47,10 @@ const toast = computed(() => uiStore.toast)
   &.info {
     background: rgba(76, 80, 140, 0.94);
   }
+
+  &.warning {
+    background: rgba(204, 122, 0, 0.94);
+  }
 }
 
 .toast-fade-enter-active,

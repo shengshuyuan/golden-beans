@@ -9,18 +9,19 @@ describe('calculateCheckInReward', () => {
   it('returns base gold only when no streak milestone', () => {
     const r = calculateCheckInReward({
       habitType: 'easy', newStreak: 1, prevStreak: 0,
-      pendingCount: 1, getMilestoneBonus
+      pendingCount: 1, todayCompletedCount: 10, getMilestoneBonus
     })
     expect(r.baseGold).toBe(3)
     expect(r.streakBonus).toBe(0)
     expect(r.allClearBonus).toBe(0)
+    expect(r.firstCheckInBonus).toBe(0)
     expect(r.totalGold).toBe(3)
   })
 
   it('awards streak bonus at day 3 milestone', () => {
     const r = calculateCheckInReward({
       habitType: 'easy', newStreak: 3, prevStreak: 2,
-      pendingCount: 1, getMilestoneBonus
+      pendingCount: 1, todayCompletedCount: 10, getMilestoneBonus
     })
     expect(r.streakBonus).toBe(5)
     expect(r.totalGold).toBe(3 + 5)
@@ -29,7 +30,7 @@ describe('calculateCheckInReward', () => {
   it('awards streak bonus at day 7 milestone', () => {
     const r = calculateCheckInReward({
       habitType: 'effort', newStreak: 7, prevStreak: 6,
-      pendingCount: 1, getMilestoneBonus
+      pendingCount: 1, todayCompletedCount: 10, getMilestoneBonus
     })
     expect(r.streakBonus).toBe(15)
     expect(r.totalGold).toBe(5 + 15)
@@ -38,7 +39,7 @@ describe('calculateCheckInReward', () => {
   it('awards streak bonus at day 30 milestone', () => {
     const r = calculateCheckInReward({
       habitType: 'challenge', newStreak: 30, prevStreak: 29,
-      pendingCount: 1, getMilestoneBonus
+      pendingCount: 1, todayCompletedCount: 10, getMilestoneBonus
     })
     expect(r.streakBonus).toBe(88)
     expect(r.totalGold).toBe(10 + 88)
@@ -47,7 +48,7 @@ describe('calculateCheckInReward', () => {
   it('awards allClearBonus when last habit completed', () => {
     const r = calculateCheckInReward({
       habitType: 'easy', newStreak: 1, prevStreak: 0,
-      pendingCount: 0, getMilestoneBonus
+      pendingCount: 0, todayCompletedCount: 10, getMilestoneBonus
     })
     expect(r.allClearBonus).toBe(3)
     expect(r.totalGold).toBe(3 + 3)
@@ -56,7 +57,7 @@ describe('calculateCheckInReward', () => {
   it('combines streak + allClear bonuses', () => {
     const r = calculateCheckInReward({
       habitType: 'effort', newStreak: 7, prevStreak: 6,
-      pendingCount: 0, getMilestoneBonus
+      pendingCount: 0, todayCompletedCount: 10, getMilestoneBonus
     })
     expect(r.totalGold).toBe(5 + 15 + 3)
   })

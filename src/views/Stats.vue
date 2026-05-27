@@ -237,14 +237,13 @@ const weekComparison = computed(() => {
         <div class="stat-emoji">🔥</div>
       </article>
       <article class="glass-panel stat-card">
-        <div class="stat-title">累计金豆</div>
-        <div class="stat-value bean-value">{{ statistics.totalGold }}颗</div>
+        <div class="stat-title">金豆收支</div>
+        <div class="stat-split">
+          <span class="split-earned">+{{ statistics.totalGold }}</span>
+          <span class="split-divider">/</span>
+          <span class="split-spent">-{{ userStore.getStatistics().totalSpent }}</span>
+        </div>
         <div class="stat-emoji bean-emoji"><GoldBeanIcon :size="28" /></div>
-      </article>
-      <article class="glass-panel stat-card">
-        <div class="stat-title">总消费金豆</div>
-        <div class="stat-value spent-value">{{ userStore.getStatistics().totalSpent }}颗</div>
-        <div class="stat-emoji">🛒</div>
       </article>
     </section>
 
@@ -493,7 +492,25 @@ const weekComparison = computed(() => {
   justify-content: center;
 }
 
-.spent-value {
+.stat-split {
+  margin-top: 12px;
+  max-width: calc(100% - 42px);
+  font-size: clamp(20px, 5vw, 28px);
+  line-height: 1.08;
+  font-weight: 900;
+}
+
+.split-earned {
+  color: #34c759;
+}
+
+.split-divider {
+  color: $text-light;
+  margin: 0 2px;
+  font-weight: 600;
+}
+
+.split-spent {
   color: #ff6b6b;
 }
 

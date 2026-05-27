@@ -185,12 +185,9 @@ function formatBackupTime(iso) {
         <button class="filter-btn" :class="{ active: activeFilter === 'expense' }" @click="activeFilter = 'expense'">支出</button>
       </div>
 
-      <!-- 存储状态 -->
+      <!-- 存储状态（仅临界时在此页也提示） -->
       <div v-if="storageHealth.critical" class="storage-warning critical">
-        <span>⚠️ 存储空间即将用尽（{{ storageHealth.usage }}%），旧数据将自动清理</span>
-      </div>
-      <div v-else-if="storageHealth.warning" class="storage-warning">
-        <span>存储空间使用 {{ storageHealth.usage }}%</span>
+        <span>⚠️ 存储空间即将用尽（{{ storageHealth.usage }}%），建议导出备份</span>
       </div>
     </header>
 
@@ -207,7 +204,8 @@ function formatBackupTime(iso) {
           <article v-for="item in items" :key="item.id" class="ledger-item">
             <div class="item-left">
               <span class="item-icon" :class="{ income: item.amount > 0, expense: item.amount < 0 }">
-                {{ item.amount > 0 ? '+' : '-' }}
+                <GoldBeanIcon v-if="item.amount > 0" :size="18" />
+                <span v-else class="icon-minus">−</span>
               </span>
               <div class="item-info">
                 <span class="item-reason">{{ item.reason }}</span>
@@ -458,6 +456,11 @@ function formatBackupTime(iso) {
 .item-icon.expense {
   background: rgba(255, 59, 48, 0.12);
   color: #ff3b30;
+}
+
+.icon-minus {
+  font-size: 16px;
+  font-weight: 900;
 }
 
 .item-info {

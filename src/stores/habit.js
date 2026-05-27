@@ -10,7 +10,7 @@ import {
   getStreakTierName,
   getStreakBreakPenalty
 } from '../config/habitConstants'
-import { calculateCheckInReward, calculateMakeupCost, findStreakBeforeBreak, getComebackReward } from '../domain/habitRules'
+import { calculateCheckInReward, calculateMakeupCost, findStreakBeforeBreak } from '../domain/habitRules'
 import { LEDGER_ENTRY_TYPES } from '../domain/goldRules'
 
 // Re-export for backward compatibility
@@ -214,27 +214,17 @@ export const useHabitStore = defineStore('habit', {
       const newStreak = this.getStreakDays(habitId, date)
       const prevStreak = newStreak - 1
       const pendingCount = this.getPendingHabitsByDate(date).length
+      const streakBeforeBreak = penaltyResult?.streakBeforeBreak || 0
+      const todayCompletedCount = this.getCompletedHabitsByDate(date).length
       const reward = calculateCheckInReward({
         habitType: habit.type,
         newStreak,
         prevStreak,
         pendingCount,
+        todayCompletedCount,
+        streakBeforeBreak,
         getMilestoneBonus
       })
-
-      // 回归奖励：断签后重新连续 3 天 +10 金豆
-      const streakBeforeBreak = penaltyResult?.streakBeforeBreak || 0
-      const comebackBonus = getComebackReward(newStreak, streakBeforeBreak)
-      if (comebackBonus > 0) {
-        reward.totalGold += comebackBonus
-      }
-
-      // 每日首次打卡 +2 额外金豆
-      const todayCompleted = this.getCompletedHabitsByDate(date)
-      const firstCheckInBonus = todayCompleted.length <= 1 ? 2 : 0
-      if (firstCheckInBonus > 0) {
-        reward.totalGold += firstCheckInBonus
-      }
 
       const userStore = useUserStore()
       userStore.addGold(reward.totalGold, '完成习惯', {
@@ -242,8 +232,8 @@ export const useHabitStore = defineStore('habit', {
         date,
         streakBonus: reward.streakBonus,
         allClearBonus: reward.allClearBonus,
-        comebackBonus,
-        firstCheckInBonus
+        comebackBonus: reward.comebackBonus,
+        firstCheckInBonus: reward.firstCheckInBonus
       }, LEDGER_ENTRY_TYPES.CHECK_IN)
 
       this.persist()
@@ -258,8 +248,8 @@ export const useHabitStore = defineStore('habit', {
         baseGold: reward.baseGold,
         streakBonus: reward.streakBonus,
         allClearBonus: reward.allClearBonus,
-        comebackBonus,
-        firstCheckInBonus,
+        comebackBonus: reward.comebackBonus,
+        firstCheckInBonus: reward.firstCheckInBonus,
         newStreak,
         streakTierName: getStreakTierName(newStreak, prevStreak),
         penaltyResult

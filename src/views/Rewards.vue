@@ -156,7 +156,7 @@ function confirmAction() {
         <div v-if="affordableRewards.length > 0" class="reward-section">
           <h2 class="section-label accent">现在可兑换</h2>
           <!-- 置顶推荐卡片 -->
-          <div v-if="affordableRewards.length > 0" class="featured-reward" @click="$emit('redeem', affordableRewards[0])">
+          <div v-if="affordableRewards.length > 0" class="featured-reward" @click="handleRedeem(affordableRewards[0])">
             <div class="featured-badge">推荐</div>
             <div class="featured-icon">{{ affordableRewards[0].icon || '🎁' }}</div>
             <div class="featured-info">
