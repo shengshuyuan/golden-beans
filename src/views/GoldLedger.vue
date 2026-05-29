@@ -5,6 +5,7 @@ import { useUiStore } from '../stores/ui'
 import { appStorage } from '../repositories/appStorage'
 import BaseModal from '../components/common/BaseModal.vue'
 import GoldBeanIcon from '../components/common/GoldBeanIcon.vue'
+import EmptyState from '../components/common/EmptyState.vue'
 
 const userStore = useUserStore()
 const uiStore = useUiStore()
@@ -191,11 +192,12 @@ function formatBackupTime(iso) {
       </div>
     </header>
 
-    <section v-if="Object.keys(groupedLedger).length === 0" class="glass-panel empty-state">
-      <div class="empty-icon">📒</div>
-      <h2 class="empty-title">还没有金豆记录</h2>
-      <p class="empty-text">完成习惯打卡后，金豆变动会显示在这里。</p>
-    </section>
+    <EmptyState
+      v-if="Object.keys(groupedLedger).length === 0"
+      icon="📒"
+      title="还没有金豆记录"
+      text="完成习惯打卡后，金豆变动会显示在这里。"
+    />
 
     <section v-else class="ledger-list">
       <div v-for="(items, date) in groupedLedger" :key="date" class="ledger-group">
@@ -364,11 +366,11 @@ function formatBackupTime(iso) {
 }
 
 .summary-value.earned {
-  color: #34c759;
+  color: $success-color;
 }
 
 .summary-value.spent {
-  color: #ff3b30;
+  color: $danger-color;
 }
 
 .summary-divider {
@@ -449,13 +451,13 @@ function formatBackupTime(iso) {
 }
 
 .item-icon.income {
-  background: rgba(52, 199, 89, 0.12);
-  color: #34c759;
+  background: $success-soft;
+  color: $success-color;
 }
 
 .item-icon.expense {
-  background: rgba(255, 59, 48, 0.12);
-  color: #ff3b30;
+  background: $danger-soft;
+  color: $danger-color;
 }
 
 .icon-minus {
@@ -490,32 +492,11 @@ function formatBackupTime(iso) {
 }
 
 .item-amount.income {
-  color: #34c759;
+  color: $success-color;
 }
 
 .item-amount.expense {
-  color: #ff3b30;
-}
-
-.empty-state {
-  padding: 40px 20px;
-  text-align: center;
-}
-
-.empty-icon {
-  font-size: 40px;
-}
-
-.empty-title {
-  margin-top: 14px;
-  font-size: 18px;
-}
-
-.empty-text {
-  margin-top: 10px;
-  color: $text-secondary;
-  font-size: 14px;
-  line-height: 1.6;
+  color: $danger-color;
 }
 
 /* 导入弹窗 */
@@ -656,7 +637,7 @@ function formatBackupTime(iso) {
 }
 
 .manage-value.safe {
-  color: #34c759;
+  color: $success-color;
 }
 
 .manage-hint {

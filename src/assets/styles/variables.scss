@@ -24,6 +24,27 @@ $penalty-soft: rgba(221, 91, 80, 0.12);
 $stats-color: #8b7dcf;       // 统计：蓝灰/紫灰，代表分析
 $stats-soft: rgba(139, 125, 207, 0.12);
 
+// 品牌渐变
+$gradient-primary: linear-gradient(135deg, #ffc56e 0%, #ff9b31 100%);
+$gradient-primary-wide: linear-gradient(165deg, #ffc56e 0%, #ff9b31 48%, #ff9127 100%);
+$gradient-soft: linear-gradient(135deg, #fff8ef 0%, #fff4e2 100%);
+$gradient-warm: linear-gradient(180deg, #fffaf0 0%, #fff4e2 100%);
+$gradient-danger: linear-gradient(135deg, #ff6b6b 0%, #ff3b30 100%);
+
+// 表面色
+$surface-warm: #fff8ef;
+$surface-card: #f8f3ec;
+$surface-input: #f6efe6;
+$surface-ghost: #f5f0e8;
+$surface-calendar: #f5f7fa;
+
+// 通用色
+$white: #ffffff;
+$white-88: rgba(255, 255, 255, 0.88);
+$white-85: rgba(255, 255, 255, 0.85);
+$border-light: rgba(0, 0, 0, 0.04);
+$border-divider: rgba(0, 0, 0, 0.08);
+
 $shadow-sm: 0 12px 24px rgba(183, 129, 68, 0.12);
 $shadow-md: 0 22px 44px rgba(183, 129, 68, 0.16);
 

@@ -6,6 +6,7 @@ import { useUserStore } from '../stores/user'
 import { useHabitStore, HABIT_TYPE_CONFIG } from '../stores/habit'
 import { useUiStore } from '../stores/ui'
 import GoldBeanIcon from '../components/common/GoldBeanIcon.vue'
+import EmptyState from '../components/common/EmptyState.vue'
 import RewardCard from '../components/reward/RewardCard.vue'
 import RedeemSuccessModal from '../components/common/RedeemSuccessModal.vue'
 import ConfirmActionModal from '../components/common/ConfirmActionModal.vue'
@@ -144,12 +145,14 @@ function confirmAction() {
         <p class="goal-progress-label">{{ userStore.gold }} / {{ nearestGoal.reward.cost }} 金豆</p>
       </div>
 
-      <div v-if="rewardStore.availableRewards.length === 0" class="empty-state">
-        <div class="empty-icon">🎁</div>
-        <h2 class="empty-title">还没有奖励清单</h2>
-        <p class="empty-text">把想要的小确幸放进这里，用积累的金豆换一份满足感。</p>
-        <button class="primary-btn" @click="router.push('/rewards/new')">添加第一个奖励</button>
-      </div>
+      <EmptyState
+        v-if="rewardStore.availableRewards.length === 0"
+        icon="🎁"
+        title="还没有奖励清单"
+        text="把想要的小确幸放进这里，用积累的金豆换一份满足感。"
+        button-label="添加第一个奖励"
+        @action="router.push('/rewards/new')"
+      />
 
       <div v-else>
         <!-- 可兑换推荐 -->
@@ -288,7 +291,7 @@ function confirmAction() {
 .overview-item {
   padding: 12px;
   border-radius: 20px;
-  background: linear-gradient(180deg, #fffaf0, #fff4e2);
+  background: $gradient-warm;
 
   strong {
     display: block;
@@ -407,7 +410,7 @@ function confirmAction() {
 }
 
 .section-label.accent {
-  color: #e65100;
+  color: $primary-dark;
 }
 
 /* 推荐卡片 */
@@ -481,27 +484,6 @@ function confirmAction() {
   color: white;
   font-size: 13px;
   font-weight: 800;
-}
-
-.empty-state {
-  padding: 22px 10px 10px;
-  text-align: center;
-}
-
-.empty-icon {
-  font-size: 34px;
-}
-
-.empty-title {
-  margin-top: 10px;
-  font-size: 18px;
-}
-
-.empty-text {
-  margin-top: 8px;
-  color: $text-secondary;
-  font-size: 14px;
-  line-height: 1.6;
 }
 
 .primary-btn {

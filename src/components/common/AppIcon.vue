@@ -37,6 +37,7 @@ const icons = {
     stroke-linejoin="round"
     aria-hidden="true"
   >
+    <!-- v-html safe: icons data is a hardcoded const above, name is validated by prop validator -->
     <g v-html="icons[name] || icons.home" />
   </svg>
 </template>

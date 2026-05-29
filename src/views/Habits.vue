@@ -7,6 +7,7 @@ import { useUiStore } from '../stores/ui'
 import HabitItem from '../components/habit/HabitItem.vue'
 import MakeupConfirmModal from '../components/common/MakeupConfirmModal.vue'
 import ConfirmActionModal from '../components/common/ConfirmActionModal.vue'
+import EmptyState from '../components/common/EmptyState.vue'
 
 const router = useRouter()
 const habitStore = useHabitStore()
@@ -124,12 +125,14 @@ function confirmAction() {
       </div>
     </section>
 
-    <section v-if="activeHabits.length === 0" class="glass-panel empty-state">
-      <div class="empty-icon">🌱</div>
-      <h2 class="empty-title">还没有开始第一项习惯</h2>
-      <p class="empty-text">从一个最容易坚持的小目标开始，把它养成自己的节奏。</p>
-      <button class="primary-btn" @click="router.push('/habits/new')">创建习惯</button>
-    </section>
+    <EmptyState
+      v-if="activeHabits.length === 0"
+      icon="🌱"
+      title="还没有开始第一项习惯"
+      text="从一个最容易坚持的小目标开始，把它养成自己的节奏。"
+      button-label="创建习惯"
+      @action="router.push('/habits/new')"
+    />
 
     <section v-else class="habit-list">
       <HabitItem
@@ -235,7 +238,7 @@ function confirmAction() {
 .summary-pill {
   padding: 12px;
   border-radius: 20px;
-  background: linear-gradient(180deg, #fffaf0, #fff4e2);
+  background: $gradient-warm;
   text-align: center;
 
   strong {
@@ -279,27 +282,6 @@ function confirmAction() {
 
 .archived-list {
   margin-top: 12px;
-}
-
-.empty-state {
-  padding: 24px 18px;
-  text-align: center;
-}
-
-.empty-icon {
-  font-size: 34px;
-}
-
-.empty-title {
-  margin-top: 10px;
-  font-size: 18px;
-}
-
-.empty-text {
-  margin-top: 8px;
-  color: $text-secondary;
-  font-size: 14px;
-  line-height: 1.6;
 }
 
 .primary-btn {

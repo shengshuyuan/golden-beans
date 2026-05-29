@@ -11,6 +11,7 @@ import ProgressRing from '../components/common/ProgressRing.vue'
 import CompletionCelebration from '../components/common/CompletionCelebration.vue'
 import CheckSuccessModal from '../components/common/CheckSuccessModal.vue'
 import GoldBeanIcon from '../components/common/GoldBeanIcon.vue'
+import EmptyState from '../components/common/EmptyState.vue'
 
 const router = useRouter()
 const habitStore = useHabitStore()
@@ -289,18 +290,23 @@ function closeSuccessModal() {
         </button>
       </div>
 
-      <div v-if="currentTab === 'pending' && pendingHabits.length === 0" class="empty-state compact">
-        <div class="empty-icon">🌤️</div>
-        <h2 class="empty-title">今天的计划已经清空啦</h2>
-        <p class="empty-text">继续保持，去奖励页看看想兑换什么吧。</p>
-        <button class="primary-btn" @click="router.push('/rewards')">去奖励页看看</button>
-      </div>
+      <EmptyState
+        v-if="currentTab === 'pending' && pendingHabits.length === 0"
+        icon="🌤️"
+        title="今天的计划已经清空啦"
+        text="继续保持，去奖励页看看想兑换什么吧。"
+        button-label="去奖励页看看"
+        compact
+        @action="router.push('/rewards')"
+      />
 
-      <div v-else-if="currentTab === 'completed' && completedHabits.length === 0" class="empty-state compact">
-        <div class="empty-icon">📝</div>
-        <h2 class="empty-title">还没有完成记录</h2>
-        <p class="empty-text">先完成一项今天的习惯，这里就会亮起来。</p>
-      </div>
+      <EmptyState
+        v-else-if="currentTab === 'completed' && completedHabits.length === 0"
+        icon="📝"
+        title="还没有完成记录"
+        text="先完成一项今天的习惯，这里就会亮起来。"
+        compact
+      />
 
       <div v-else class="habit-list">
         <HabitCard
@@ -340,7 +346,7 @@ function closeSuccessModal() {
 .hero-section {
   padding: 20px;
   border-radius: $radius-2xl;
-  background: linear-gradient(135deg, #fff8ef 0%, #fff4e2 100%);
+  background: $gradient-soft;
   box-shadow: 0 12px 32px rgba(255, 155, 49, 0.15);
 }
 
@@ -386,7 +392,7 @@ function closeSuccessModal() {
   gap: 6px;
   padding: 8px 14px;
   border-radius: $radius-full;
-  background: linear-gradient(135deg, #ffc56e 0%, #ff9b31 100%);
+  background: $gradient-primary;
   color: white;
   font-weight: 800;
   box-shadow: 0 4px 12px rgba(255, 155, 49, 0.3);
@@ -445,8 +451,8 @@ function closeSuccessModal() {
 
 .onboard-step.done {
   opacity: 1;
-  background: rgba(52, 199, 89, 0.1);
-  color: #34c759;
+  background: $success-soft;
+  color: $success-color;
 }
 
 .step-badge {
@@ -464,8 +470,8 @@ function closeSuccessModal() {
 }
 
 .onboard-step.done .step-badge {
-  background: #34c759;
-  color: white;
+  background: $success-color;
+  color: $white;
 }
 
 /* 习惯列表 */
@@ -509,7 +515,7 @@ function closeSuccessModal() {
   margin-top: 14px;
   padding: 6px;
   border-radius: 20px;
-  background: #f6efe6;
+  background: $surface-input;
 }
 
 .tab-btn {
@@ -521,7 +527,7 @@ function closeSuccessModal() {
 }
 
 .tab-btn.active {
-  background: rgba(255, 255, 255, 0.98);
+  background: $white-88;
   color: $text-primary;
   box-shadow: 0 6px 14px rgba(183, 129, 68, 0.1);
 }
@@ -530,32 +536,6 @@ function closeSuccessModal() {
   display: grid;
   gap: 12px;
   margin-top: 14px;
-}
-
-.empty-state {
-  padding: 22px 10px 6px;
-  text-align: center;
-}
-
-.empty-state.compact {
-  padding-bottom: 4px;
-}
-
-.empty-icon {
-  font-size: 30px;
-}
-
-.empty-title {
-  margin-top: 10px;
-  font-size: 17px;
-  line-height: 1.3;
-}
-
-.empty-text {
-  margin-top: 8px;
-  color: $text-secondary;
-  font-size: 14px;
-  line-height: 1.6;
 }
 
 .primary-btn {
@@ -593,7 +573,7 @@ function closeSuccessModal() {
   border: 1px solid rgba(255, 152, 0, 0.3);
 
   .cta-text {
-    color: #e65100;
+    color: $primary-dark;
   }
 }
 

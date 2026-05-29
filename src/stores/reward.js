@@ -10,6 +10,7 @@ function sanitizeReward(reward) {
     name: reward.name || '',
     description: reward.description || '',
     cost: Math.max(1, Number(reward.cost) || 0),
+    // Rewards accept any emoji icon (no whitelist); habits use HABIT_ICON_OPTIONS whitelist
     icon: reward.icon || '🎁',
     createdAt: reward.createdAt || new Date().toISOString(),
     updatedAt: reward.updatedAt || new Date().toISOString()

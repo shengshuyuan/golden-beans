@@ -5,6 +5,7 @@ import { useUserStore } from '../stores/user'
 import { getCalendarData, getTodayString } from '../utils/date'
 import { calculateCompletionRate, generateInsights, getDayStatus as getDayStatusUtil } from '../domain/statsUtils'
 import GoldBeanIcon from '../components/common/GoldBeanIcon.vue'
+import GoldTrendChart from '../components/common/GoldTrendChart.vue'
 
 const habitStore = useHabitStore()
 const userStore = useUserStore()
@@ -100,49 +101,6 @@ function dayClass(day) {
 
 const insights = computed(() => generateInsights(habitStats.value))
 
-// 金豆趋势图（最近 14 天每天收入）
-const goldTrend = computed(() => {
-  const days = []
-  for (let i = 13; i >= 0; i--) {
-    const d = new Date()
-    d.setDate(d.getDate() - i)
-    const ds = d.toISOString().slice(0, 10)
-    const dayStart = new Date(ds + 'T00:00:00').getTime()
-    const dayEnd = dayStart + 86400000
-    const income = userStore.ledger
-      .filter(e => e.amount > 0 && new Date(e.createdAt).getTime() >= dayStart && new Date(e.createdAt).getTime() < dayEnd)
-      .reduce((s, e) => s + e.amount, 0)
-    days.push({ date: ds, day: d.getDate(), income })
-  }
-  return days
-})
-
-const goldTrendMax = computed(() => Math.max(1, ...goldTrend.value.map(d => d.income)))
-
-const goldTrendPath = computed(() => {
-  const w = 280
-  const h = 60
-  const pad = 4
-  const pts = goldTrend.value.map((d, i) => {
-    const x = pad + (i / (goldTrend.value.length - 1)) * (w - pad * 2)
-    const y = h - pad - (d.income / goldTrendMax.value) * (h - pad * 2)
-    return `${x},${y}`
-  })
-  return `M${pts.join(' L')}`
-})
-
-const goldTrendFillPath = computed(() => {
-  const w = 280
-  const h = 60
-  const pad = 4
-  const pts = goldTrend.value.map((d, i) => {
-    const x = pad + (i / (goldTrend.value.length - 1)) * (w - pad * 2)
-    const y = h - pad - (d.income / goldTrendMax.value) * (h - pad * 2)
-    return `${x},${y}`
-  })
-  return `M${pad},${h} L${pts.join(' L')} L${w - pad},${h} Z`
-})
-
 // 周/月完成率
 const weekCompletion = computed(() => {
   const now = new Date()
@@ -211,7 +169,7 @@ const weekComparison = computed(() => {
       </div>
 
       <div class="calendar-grid">
-        <div v-for="(day, index) in calendarData" :key="index" class="calendar-day" :class="dayClass(day)">
+        <div v-for="day in calendarData" :key="day.date" class="calendar-day" :class="dayClass(day)">
           <span class="day-number">{{ day.day }}</span>
           <span v-if="getDayStatus(day.date) !== 'none'" class="day-dot"></span>
         </div>
@@ -248,24 +206,7 @@ const weekComparison = computed(() => {
     </section>
 
     <!-- 金豆趋势 -->
-    <section class="glass-panel trend-card">
-      <h2 class="section-title">金豆趋势 <span class="trend-sub">近 14 天</span></h2>
-      <svg class="trend-svg" viewBox="0 0 280 60" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#ffc664" stop-opacity="0.3" />
-            <stop offset="100%" stop-color="#ffc664" stop-opacity="0" />
-          </linearGradient>
-        </defs>
-        <path :d="goldTrendFillPath" fill="url(#trendFill)" />
-        <path :d="goldTrendPath" fill="none" stroke="#ff9b31" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-      <div class="trend-labels">
-        <span v-for="(d, i) in goldTrend" :key="d.date" class="trend-label" :class="{ show: i % 3 === 0 || i === goldTrend.length - 1 }">
-          {{ d.day }}日
-        </span>
-      </div>
-    </section>
+    <GoldTrendChart />
 
     <section class="glass-panel rate-card">
       <div class="rate-header-bar">
@@ -351,7 +292,7 @@ const weekComparison = computed(() => {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #e5e9f0;
+  background: $surface-calendar;
   color: $text-primary;
 }
 
@@ -390,7 +331,7 @@ const weekComparison = computed(() => {
   gap: 4px;
   aspect-ratio: 1;
   border-radius: 16px;
-  background: #f5f7fa;
+  background: $surface-calendar;
 }
 
 .calendar-day.other {
@@ -423,7 +364,7 @@ const weekComparison = computed(() => {
 }
 
 .calendar-day.heat-4 {
-  background: #34c759;
+  background: $success-color;
 }
 
 .calendar-day.heat-4 .day-number {
@@ -440,7 +381,7 @@ const weekComparison = computed(() => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #20c7a3;
+  background: $habit-color;
 }
 
 .calendar-footer {
@@ -460,7 +401,7 @@ const weekComparison = computed(() => {
   position: relative;
   min-height: 130px;
   padding: 16px;
-  background: linear-gradient(180deg, #f5f7fa, #edf0f5);
+  background: linear-gradient(180deg, $surface-calendar, darken($surface-calendar, 3%));
 }
 
 .stat-title {
@@ -501,7 +442,7 @@ const weekComparison = computed(() => {
 }
 
 .split-earned {
-  color: #34c759;
+  color: $success-color;
 }
 
 .split-divider {
@@ -511,41 +452,7 @@ const weekComparison = computed(() => {
 }
 
 .split-spent {
-  color: #ff6b6b;
-}
-
-/* 金豆趋势 */
-.trend-card {
-  padding: 16px;
-}
-
-.trend-sub {
-  font-size: 12px;
-  color: $text-light;
-  font-weight: 600;
-  margin-left: 6px;
-}
-
-.trend-svg {
-  width: 100%;
-  height: 60px;
-  margin-top: 10px;
-}
-
-.trend-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 4px;
-}
-
-.trend-label {
-  font-size: 10px;
-  color: $text-light;
-  visibility: hidden;
-}
-
-.trend-label.show {
-  visibility: visible;
+  color: $danger-color;
 }
 
 /* 完成率切换 */
@@ -561,7 +468,7 @@ const weekComparison = computed(() => {
   gap: 4px;
   padding: 3px;
   border-radius: 14px;
-  background: #f0ebe3;
+  background: $surface-input;
 }
 
 .toggle-btn {
@@ -607,13 +514,13 @@ const weekComparison = computed(() => {
 }
 
 .week-compare.up {
-  background: rgba(52, 199, 89, 0.15);
-  color: #34c759;
+  background: $success-soft;
+  color: $success-color;
 }
 
 .week-compare.down {
-  background: rgba(255, 59, 48, 0.12);
-  color: #ff3b30;
+  background: $danger-soft;
+  color: $danger-color;
 }
 
 .section-title {
@@ -649,7 +556,7 @@ const weekComparison = computed(() => {
 .rate-bar {
   height: 9px;
   border-radius: $radius-full;
-  background: #e5e9f0;
+  background: $surface-calendar;
   overflow: hidden;
 }
 
@@ -682,7 +589,7 @@ const weekComparison = computed(() => {
   gap: 12px;
   padding: 14px;
   border-radius: 18px;
-  background: #f8f3ec;
+  background: $surface-card;
 }
 
 .insight-icon {
